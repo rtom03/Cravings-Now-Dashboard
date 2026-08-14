@@ -1,0 +1,1678 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                       String             @id @default(uuid())
+  email                    String             @unique
+  password                 String
+  name                     String?
+  branchId                 String?
+  role                     UserRole
+  branch                   Branch?            @relation(fields: [branchId], references: [id])
+  creator                  Order?             @relation("OrderCreator")
+  closer                   Order?             @relation("OrderCloser")
+  driver                   Order?             @relation("OrderDriver")
+  orderProductCreator      OrderProduct?      @relation("OrderProductCreator")
+  orderProductVoider       OrderProduct?      @relation("OrderProductVoider")
+  orderPayment             OrderPayment?
+  orderComboProductCreator OrderComboProduct? @relation("OrderComboProductCreator")
+  orderComboProductVoider  OrderComboProduct? @relation("OrderComboProductVoider")
+
+  @@index([role])
+  @@index([branchId])
+}
+
+// model Brand {
+//   id         String          @id @default(uuid())
+//   name       String
+//   categories BrandCategory[]
+//   branches   Branch[]
+// }
+
+// model BrandCategory {
+//   id String @id @default(uuid())
+
+//   brandId    String
+//   categoryId String
+
+//   brand    Brand    @relation(fields: [brandId], references: [id])
+//   category Category @relation(fields: [categoryId], references: [id])
+
+//   @@unique([brandId, categoryId])
+// }
+
+model Branch {
+  id                    String  @id @default(uuid())
+  foodicsId             String  @unique @map("foodics_id")
+  nameLocalized         String? @map("name_localized")
+  reference             String? @unique @map("reference")
+  name                  String
+  latitude              String?
+  longitude             String?
+  phone                 String?
+  openingFrom           String  @map("opening_from")
+  openingTo             String  @map("opening_to")
+  acceptsReservations   Boolean @default(false) @map("accepts_reservations")
+  address               String?
+  receiptFooter         String? @map("receipt_footer")
+  receiptHeader         String? @map("receipt_header")
+  reservationDuration   Int     @default(0) @map("reservation_duration")
+  reservationTimes      Json?   @map("reservation_times")
+  settings              Json
+  // type                    Int
+  inventoryEndOfDayTime String  @map("inventory_end_of_day_time")
+  receivesOnlineOrders  Boolean @default(false) @map("receives_online_orders")
+
+  // --- Relations ---
+
+  taxGroupId String?   @map("tax_group_id")
+  taxGroup   TaxGroup? @relation(fields: [taxGroupId], references: [id])
+
+  branchCategories BranchCategory[]
+
+  // brandId String
+  // brand   Brand  @relation(fields: [brandId], references: [id])
+
+  products             ProductBranch[]        @relation("BranchProducts")
+  modifierOptionBranch ModifierOptionBranch[]
+
+  // modifierOptions         ModifierOption[] @relation("BranchModifierOptions")
+  combos        ComboBranch[]
+  tags          Tag[]          @relation("BranchTags")
+  users         User[]
+  deliveryZones DeliveryZone[] @relation("BranchDeliveryZones")
+  // discounts               BranchDiscount[] @relation("BranchDiscounts")
+  timedEvents   TimedEvent[]   @relation("BranchTimedEvents")
+  promotions    Promotion[]    @relation("BranchPromotions")
+  charges       Charge[]       @relation("BranchCharges")
+  discounts     Discount[]     @relation("DiscountBranches")
+
+  inventoryItemBranch       InventoryItemBranch[]
+  sections                  Section[]
+  devices                   Device[]
+  comboItemOptionSizeBranch ComboItemOptionSizeBranch[]
+  orders                    Order[]
+  giftCardProductBranch     GiftCardProductBranch?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("branches")
+}
+
+model Product {
+  id                           String   @id @default(uuid())
+  foodicsId                    String   @unique
+  sku                          String   @unique
+  barcode                      String?
+  name                         String
+  nameLocalized                String?  @map("name_localized")
+  description                  String?
+  descriptionLocalized         String?  @map("description_localized")
+  image                        String?
+  isActive                     Boolean  @default(true) @map("is_active")
+  isStockProduct               Boolean  @default(false) @map("is_stock_product")
+  isNonRevenue                 Boolean  @default(false) @map("is_non_revenue")
+  isReady                      Boolean  @default(false) @map("is_ready")
+  pricingMethod                Int      @map("pricing_method") // 1 = Pre Set, 2 = Open Price
+  sellingMethod                Int      @map("selling_method") // 1 = Unit, 2 = Weight
+  costingMethod                Int      @map("costing_method") // 1 = Fixed, 2 = From Ingredients
+  preparationTime              Int?     @map("preparation_time")
+  price                        Float?
+  cost                         Float?
+  calories                     Int?
+  walkingMinutesToBurnCalories Int?     @map("walking_minutes_to_burn_calories")
+  isHighSalt                   Boolean? @map("is_high_salt")
+
+  // --- Relations ---
+
+  taxGroupId               String?               @map("tax_group_id")
+  taxGroup                 TaxGroup?             @relation(fields: [taxGroupId], references: [id])
+  comboItemSize            ComboItemOptionSize[]
+  categoryId               String?               @map("category_id")
+  category                 Category?             @relation(fields: [categoryId], references: [id])
+  promotion                Promotion[]           @relation("PromotionProducts")
+  rewardPromotions         Promotion[]           @relation("PromotionRewardProducts")
+  orderProduct             OrderProduct?
+  orderComboProductProduct OrderComboProduct?    @relation("OrderComboProductProduct")
+
+  tags        Tag[]        @relation("ProductTags")
+  discounts   Discount[]   @relation("ProductDiscounts")
+  timedEvents TimedEvent[] @relation("ProductTimedEvents")
+  groups      MenuGroup[]  @relation("ProductMenuGroups")
+  modifiers   Modifier[]   @relation("ModifierProducts") // inverse of Modifier.products
+
+  branches    ProductBranch[]
+  ingredients ProductIngredient[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("products")
+}
+
+model Category {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name          String
+  nameLocalized String? @map("name_localized")
+  reference     String? @unique
+  image         String?
+
+  // --- Relations ---
+  branchCategories BranchCategory[]
+
+  items                   InventoryItem[]
+  discounts               Discount[]       @relation("CategoryDiscounts")
+  timedEvents             TimedEvent[]     @relation("CategoryTimedEvents")
+  products                Product[] // inverse of Product.category (one-to-many)
+  groupProducts           GroupProducts[]
+  combos                  Combo[] // inverse of Combo.category (one-to-many)
+  promotionCategory       Promotion[]      @relation("PromotionCategories")
+  promotionRewardCategory Promotion[]      @relation("PromotionRewardCategories")
+  giftCardProduct         GiftCardProduct?
+
+  // giftCardProducts GiftCardProduct[] @relation("CategoryGiftCardProducts")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  // brandCategories BrandCategory[]
+
+  @@map("categories")
+}
+
+model BranchCategory {
+  id String @id @default(uuid())
+
+  branchId   String
+  categoryId String
+
+  branch   Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([branchId, categoryId])
+  @@map("branch_categories")
+}
+
+// Per-branch custom attribute overrides (price, cost, active state, etc.)
+model ProductBranch {
+  id String @id @default(uuid())
+
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id])
+  branchId  String  @map("branch_id")
+  branch    Branch  @relation("BranchProducts", fields: [branchId], references: [id])
+
+  price       Float?
+  isActive    Boolean? @map("is_active")
+  is_in_stock Boolean?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([productId, branchId])
+  @@map("product_branches")
+}
+
+// Ingredients (BOM) — quantity of each inventory item used per product
+model ProductIngredient {
+  id String @id @default(uuid())
+
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id])
+
+  inventoryItemId String        @map("inventory_item_id")
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  quantity        Float?
+  yieldPercentage Float
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([productId, inventoryItemId])
+  @@map("product_ingredients")
+}
+
+model Group {
+  id            String          @id @default(uuid())
+  foodicsId     String          @unique
+  name          String
+  nameLocalized String?
+  image         String?
+  group         GroupProducts[]
+}
+
+model GroupProducts {
+  id                           String    @id @default(uuid())
+  foodicsId                    String    @unique
+  sku                          String
+  group_name                   String?
+  barcode                      String?
+  name                         String
+  nameLocalized                String?   @map("name_localized")
+  description                  String?
+  descriptionLocalized         String?   @map("description_localized")
+  image                        String?
+  isActive                     Boolean?  @default(true) @map("is_active")
+  isStockProduct               Boolean?  @default(false) @map("is_stock_product")
+  isNonRevenue                 Boolean?  @default(false) @map("is_non_revenue")
+  isReady                      Boolean?  @default(false) @map("is_ready")
+  pricingMethod                Int       @map("pricing_method") // 1 = Pre Set, 2 = Open Price
+  sellingMethod                Int       @map("selling_method") // 1 = Unit, 2 = Weight
+  costingMethod                Int       @map("costing_method") // 1 = Fixed, 2 = From Ingredients
+  preparationTime              Int?      @map("preparation_time")
+  price                        Float?
+  cost                         Float?
+  calories                     Int?
+  walkingMinutesToBurnCalories Int?      @map("walking_minutes_to_burn_calories")
+  isHighSalt                   Boolean?  @map("is_high_salt")
+  pivot                        Json?
+  groupId                      String?
+  group                        Group?    @relation(fields: [groupId], references: [id])
+  categoryId                   String?   @map("category_id")
+  category                     Category? @relation(fields: [categoryId], references: [id])
+}
+
+model Modifier {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name          String
+  nameLocalized String? @map("name_localized")
+  isReady       Boolean @default(false) @map("is_ready")
+  reference     String  @unique
+
+  // --- Relations ---
+
+  products Product[]        @relation("ModifierProducts")
+  options  ModifierOption[] // inverse of ModifierOption.modifier (one-to-many)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("modifiers")
+}
+
+model ModifierOption {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  sku           String  @unique
+  name          String
+  nameLocalized String? @map("name_localized")
+  isActive      Boolean @default(true) @map("is_active")
+  isInStock     Boolean @default(true) @map("is_in_stock")
+  costingMethod Int     @map("costing_method")
+  price         Float
+  cost          Float?
+  calories      Float?
+  index         Int?
+
+  // --- Relations ---
+
+  modifierId String   @map("modifier_id")
+  modifier   Modifier @relation(fields: [modifierId], references: [id])
+
+  taxGroupId String?   @map("tax_group_id")
+  taxGroup   TaxGroup? @relation(fields: [taxGroupId], references: [id])
+
+  branch                  ModifierOptionBranch[]
+  ingredients             ModifierOptionIngredient[]
+  orderProductionOption   OrderProductOption?
+  orderComboProductOption OrderComboProductOption?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("modifier_options")
+}
+
+// Pivot model for branches, since a modifier option can have
+// custom attributes (e.g. price/cost override) per branch
+model ModifierOptionBranch {
+  id String @id @default(uuid())
+
+  modifierOptionId String         @map("modifier_option_id")
+  modifierOption   ModifierOption @relation(fields: [modifierOptionId], references: [id])
+
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  // Custom per-branch overrides
+  price     Float?
+  isActive  Boolean? @map("is_active")
+  isInStock Boolean? @map("is_in_stock")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([modifierOptionId, branchId])
+  @@map("modifier_option_branches")
+}
+
+// Pivot model for ingredients (inventory items), typically
+// carrying a quantity/unit used per modifier option
+model ModifierOptionIngredient {
+  id String @id @default(uuid())
+
+  modifierOptionId String         @map("modifier_option_id")
+  modifierOption   ModifierOption @relation(fields: [modifierOptionId], references: [id])
+
+  inventoryItemId String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  quantity Float?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([modifierOptionId, inventoryItemId])
+  @@map("modifier_option_ingredients")
+}
+
+model InventoryItem {
+  id                        String        @id @default(uuid())
+  foodicsId                 String        @unique
+  sku                       String        @unique
+  barcode                   String?
+  name                      String
+  nameLocalized             String?       @map("name_localized")
+  minimumLevel              String?       @map("minimum_level")
+  maximumLevel              String?       @map("maximum_level")
+  parLevel                  String?       @map("par_level")
+  storageUnit               String        @map("storage_unit")
+  ingredientUnit            Int           @map("ingredient_unit") // unit type code, enum values not given yet
+  storageToIngredientFactor Float         @map("storage_to_ingredient_factor")
+  costingMethod             CostingMethod @map("costing_method")
+  cost                      Float?
+  isProduct                 Boolean?      @map("is_product")
+  yieldPercentage           Float?        @map("yield_percentage")
+
+  // --- Relations ---
+  ingredients              ProductIngredient[]
+  tags                     Tag[]                      @relation("InventoryItemTags") // pivot is plain {inventory_item_id, tag_id} -> no custom attrs
+  branches                 InventoryItemBranch[] // pivot HAS min/max/par overrides -> explicit pivot
+  modifierOptionIngredient ModifierOptionIngredient[]
+
+  categoryId String?   @map("category_id")
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  suppliers InventoryItemSupplier[] // pivot HAS order_unit/cost/etc -> explicit pivot
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("inventory_items")
+}
+
+// Per-branch custom stock levels
+model InventoryItemBranch {
+  id String @id @default(uuid())
+
+  inventoryItemId String        @map("inventory_item_id")
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  branchId String @map("branch_id")
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  // pivot data
+  minimumLevel String? @map("minimum_level")
+  maximumLevel String? @map("maximum_level")
+  parLevel     String? @map("par_level")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([inventoryItemId, branchId])
+  @@map("inventory_item_branches")
+}
+
+// Supplier-specific ordering info for this inventory item
+model InventoryItemSupplier {
+  id String @id @default(uuid())
+
+  inventoryItemId String        @map("inventory_item_id")
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  supplierId String   @map("supplier_id")
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
+
+  // pivot data
+  inventoryPivotItemId String
+  orderUnit            String? @map("order_unit")
+  orderToStorageFactor Float?  @map("order_to_storage_factor")
+  minimumOrderQuantity Float?  @map("minimum_order_quantity")
+  cost                 Float?
+  code                 String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([inventoryItemId, supplierId])
+  @@map("inventory_item_suppliers")
+}
+
+model Supplier {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name        String
+  contactName String? @map("contact_name")
+  phone       String?
+  code        String?
+  email       String?
+
+  // --- Relations ---
+
+  items InventoryItemSupplier[] // same pivot built in the InventoryItem step
+  tags  Tag[]                   @relation("SupplierTags") // no pivot shown -> plain many-to-many
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("suppliers")
+}
+
+model MenuGroup {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name          String
+  nameLocalized String? @map("name_localized")
+  image         String?
+  itemsIndex    Json?   @map("items_index") // ordered array of ids, not a relation itself
+
+  // --- Relations ---
+
+  products         Product[]         @relation("ProductMenuGroups")
+  combos           Combo[]           @relation("ComboMenuGroups")
+  giftCardProducts GiftCardProduct[] @relation("MenuGroupGiftCardProducts")
+
+  // self-referential: a group can have subgroups (also MenuGroups)
+  parentId  String?     @map("parent_id")
+  parent    MenuGroup?  @relation("MenuGroupSubgroups", fields: [parentId], references: [id])
+  subgroups MenuGroup[] @relation("MenuGroupSubgroups")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("menu_groups")
+}
+
+model Combo {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  sku                  String   @unique
+  barcode              String?
+  name                 String
+  nameLocalized        String?  @map("name_localized")
+  description          String?
+  descriptionLocalized String?  @map("description_localized")
+  image                String?
+  isActive             Boolean? @map("is_active")
+  isReady              Boolean? @map("is_ready")
+
+  categoryId String   @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  groups                MenuGroup[]  @relation("ComboMenuGroups") // pivot: {id} only -> plain
+  tags                  Tag[]        @relation("ComboTags") // pivot: {combo_id, tag_id} only -> plain
+  timedEvents           TimedEvent[] @relation("ComboTimedEvents") // pivot: {id} only -> plain
+  promotionCombo        Promotion[]  @relation("PromotionCombos")
+  promotionRewardsCombo Promotion[]  @relation("PromotionRewardCombos")
+
+  branches ComboBranch[] // REINSTATED: pivot has {is_active} -> real data, explicit pivot
+
+  sizes    ComboSize[]
+  items    ComboItem[]
+  discount Discount[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("combos")
+}
+
+model ComboBranch {
+  id       String   @id @default(uuid())
+  comboId  String   @map("combo_id")
+  combo    Combo    @relation(fields: [comboId], references: [id])
+  branchId String   @map("branch_id")
+  branch   Branch   @relation(fields: [branchId], references: [id])
+  isActive Boolean? @map("is_active")
+
+  @@unique([comboId, branchId])
+  @@map("combo_branches")
+}
+
+model ComboSize {
+  id String @id @default(uuid())
+
+  name          String
+  nameLocalized String? @map("name_localized")
+
+  comboId String @map("combo_id")
+  combo   Combo  @relation(fields: [comboId], references: [id])
+
+  optionSizes           ComboItemOptionSize[]
+  orderComboSize        OrderCombo?
+  orderComboProductSize OrderComboProduct?    @relation("OrderComboProductSize")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("combo_sizes")
+}
+
+model ComboItem {
+  id            String   @id @default(uuid())
+  name          String
+  nameLocalized String?  @map("name_localized")
+  isUpgradable  Boolean? @map("is_upgradable") // confirmed by this spec, previously missing
+
+  comboId String @map("combo_id")
+  combo   Combo  @relation(fields: [comboId], references: [id])
+
+  options ComboItemOption[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("combo_items")
+}
+
+model ComboItemOption {
+  id            String  @id @default(uuid())
+  name          String
+  nameLocalized String? @map("name_localized")
+  hid           String? // still unconfirmed meaning, carried over
+
+  comboItemId String    @map("combo_item_id")
+  comboItem   ComboItem @relation(fields: [comboItemId], references: [id])
+
+  sizes              ComboItemOptionSize[]
+  // priceTags      PriceTagComboOption[]
+  orderComboProducts OrderComboProduct[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // NOTE: `index` field removed — was an earlier unconfirmed guess,
+  // no spec or sample has ever shown it on this model
+
+  @@map("combo_item_options")
+}
+
+// Matches doc section "Combo Item Option Size Attributes" exactly
+model ComboItemOptionSize {
+  comboItemOptionId String          @map("combo_item_option_id")
+  comboItemOption   ComboItemOption @relation(fields: [comboItemOptionId], references: [id])
+
+  comboSizeId String    @map("combo_size_id")
+  comboSize   ComboSize @relation(fields: [comboSizeId], references: [id])
+
+  price     Float
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  branches ComboItemOptionSizeBranch[]
+
+  @@id([comboItemOptionId, comboSizeId])
+  @@map("combo_item_option_sizes")
+}
+
+// pivot only carries `price` per the doc's own "branches.pivot.price" field
+model ComboItemOptionSizeBranch {
+  id                String              @id @default(uuid())
+  comboItemOptionId String              @map("combo_item_option_id")
+  comboSizeId       String              @map("combo_size_id")
+  optionSize        ComboItemOptionSize @relation(fields: [comboItemOptionId, comboSizeId], references: [comboItemOptionId, comboSizeId])
+
+  branchId String @map("branch_id")
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  price Float
+
+  @@unique([comboItemOptionId, comboSizeId, branchId])
+  @@map("combo_item_option_size_branches")
+}
+
+model Promotion {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name          String
+  nameLocalized String?  @map("name_localized")
+  isActive      Boolean? @map("is_active")
+
+  type PromotionType @map("type")
+
+  fromDate DateTime @map("from_date") @db.Date
+  toDate   DateTime @map("to_date") @db.Date
+  fromTime Int      @map("from_time") // confirmed integer hour (0-23) from real sample
+  toTime   Int      @map("to_time")
+
+  isSat Boolean? @map("is_sat")
+  isSun Boolean? @map("is_sun")
+  isMon Boolean? @map("is_mon")
+  isTue Boolean? @map("is_tue")
+  isWed Boolean? @map("is_wed")
+  isThu Boolean? @map("is_thu")
+  isFri Boolean? @map("is_fri")
+
+  includeModifiers      Boolean?   @map("include_modifiers")
+  targetQuantity        Int?       @map("target_quantity")
+  rewardQuantity        Int?       @map("reward_quantity")
+  rewardType            RewardType @map("reward_type") // single value, confirmed by sample
+  rewardAmount          Float      @map("reward_amount") // single value, confirmed by sample
+  maximumDiscountAmount Float      @map("maximum_discount_amount")
+
+  // --- Relations (all plain many-to-many — every pivot in the sample has only 2 FKs) ---
+  order       Order?
+  products    Product[]  @relation("PromotionProducts")
+  productTags Tag[]      @relation("PromotionProductTags")
+  combos      Combo[]    @relation("PromotionCombos")
+  categories  Category[] @relation("PromotionCategories")
+  branches    Branch[]   @relation("BranchPromotions")
+
+  customerTags Tag[] @relation("PromotionCustomerTags")
+
+  rewardProducts             Product[]          @relation("PromotionRewardProducts")
+  rewardProductTags          Tag[]              @relation("PromotionRewardProductTags")
+  rewardCombos               Combo[]            @relation("PromotionRewardCombos")
+  rewardCategories           Category[]         @relation("PromotionRewardCategories")
+  orderProductPromotion      OrderProduct?      @relation("OrderProductPromotion")
+  orderComboProductPromotion OrderComboProduct? @relation("OrderComboProductPromotion")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("promotions")
+}
+
+model Tag {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name          String
+  nameLocalized String? @map("name_localized")
+  type          TagType // see Tag Types enum below
+
+  branches       Branch[]        @relation("BranchTags")
+  products       Product[]       @relation("ProductTags")
+  combos         Combo[]         @relation("ComboTags")
+  devices        Device[]        @relation("DeviceTags")
+  inventoryItems InventoryItem[] @relation("InventoryItemTags")
+  suppliers      Supplier[]      @relation("SupplierTags")
+  timedEvents    TimedEvent[]    @relation("TimedEventTags")
+
+  // giftCardProducts        GiftCardProduct[] @relation("GiftCardProductTags")
+
+  promotionProductTags       Promotion[] @relation("PromotionProductTags")
+  promotionCustomerTags      Promotion[] @relation("PromotionCustomerTags")
+  promotionRewardProductTags Promotion[] @relation("PromotionRewardProductTags")
+
+  discountProductTags  Discount[]        @relation("DiscountProductTags")
+  discountCustomerTags Discount[]        @relation("DiscountCustomerTags")
+  giftCardProductTag   GiftCardProduct[] @relation("GiftCardProductTags") // pivot: {gift_card_product_id, tag_id} only -> plain many-to-many
+
+  ordertags   Order[]    @relation("OrderTags")
+  customerTag Customer[] @relation("CustomerTags") // sample shows {id} only, no pivot -> plain many-to-many
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("tags")
+}
+
+model TimedEvent {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name          String
+  nameLocalized String?  @map("name_localized")
+  type          Int // see Timed Event Types enum below
+  value         Float
+  priority      Int?
+  isActive      Boolean? @map("is_active")
+
+  fromDate DateTime @map("from_date") @db.Date
+  toDate   DateTime @map("to_date") @db.Date
+  fromTime String   @map("from_time") // time-of-day only (e.g. "09:00"), not a full timestamp
+  toTime   String   @map("to_time")
+
+  isSat Boolean? @map("is_sat")
+  isSun Boolean? @map("is_sun")
+  isMon Boolean? @map("is_mon")
+  isTue Boolean? @map("is_tue")
+  isWed Boolean? @map("is_wed")
+  isThu Boolean? @map("is_thu")
+  isFri Boolean? @map("is_fri")
+
+  orderTypes OrderType @default(DELIVERY) // not includable -> plain codes, not a relation
+
+  // --- Relations (all plain, no custom pivots) ---
+
+  branches Branch[]   @relation("BranchTimedEvents")
+  category Category[] @relation("CategoryTimedEvents")
+  tags     Tag[]      @relation("TimedEventTags")
+  product  Product[]  @relation("ProductTimedEvents")
+
+  combo                  Combo[]        @relation("ComboTimedEvents") // pivot: {id} only -> plain
+  orderProductTimedEvent OrderProduct[] @relation("OrderProductTimedEvents") // no pivot data shown -> plain relation
+
+  orderComboProductTimedEvents OrderComboProduct[] @relation("OrderComboProductTimedEvents")
+
+  // combos         ComboTimedEvents[]    
+  // products       ProductTimedEvent[]   @relation("ProductTimedEvents")
+
+  // categories     Category[]  @relation("CategoryTimedEvents")
+  // priceTags      PriceTag[]  @relation("TimedEventPriceTags")
+  // customerTags   Tag[]       @relation("TimedEventCustomerTags")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("timed_events")
+}
+
+model Discount {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name                String
+  nameLocalized       String?   @map("name_localized")
+  qualification       Int // see Discount Qualification enum below
+  amount              Float
+  minimumProductPrice Float?    @map("minimum_product_price")
+  minimumOrderPrice   Float     @map("minimum_order_price")
+  maximumAmount       Float?    @map("maximum_amount")
+  isPercentage        Boolean   @map("is_percentage")
+  isTaxable           Boolean?  @map("is_taxable")
+  reference           String?   @unique
+  orderTypes          OrderType @default(DELIVERY) // not `includable` -> not a relation, just a list of type codes
+
+  // --- Relations ---
+  products   Product[]  @relation("ProductDiscounts")
+  combos     Combo[] // inverse of Combo.discounts... see note below
+  branches   Branch[]   @relation("DiscountBranches")
+  categories Category[] @relation("CategoryDiscounts")
+
+  productTags               Tag[]              @relation("DiscountProductTags")
+  customerTags              Tag[]              @relation("DiscountCustomerTags")
+  Order                     Order?
+  orderDiscount             OrderProduct?      @relation("OrderProductDiscount")
+  orderComboDiscount        OrderCombo?        @relation("OrderComboDiscount")
+  OrderComboProductDiscount OrderComboProduct? @relation("OrderComboProductDiscount")
+  coupon                    Coupon?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("discounts")
+}
+
+model DeliveryZone {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name          String
+  nameLocalized String? @map("name_localized")
+  reference     String? @unique
+  coordinates   Json? // array of lat/lng points — no fixed shape given, so Json fits best
+
+  // --- Relations ---
+
+  branches        Branch[]         @relation("BranchDeliveryZones")
+  customerAddress CustomerAddress?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("delivery_zones")
+}
+
+model TaxGroup {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name          String
+  nameLocalized String?   @map("name_localized")
+  // --- Relations ---
+  taxes         Tax[]     @relation("TaxGroupTaxes")
+  product       Product[]
+  charge        Charge?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  branch         Branch[]
+  modifierOption ModifierOption[]
+
+  @@map("tax_groups")
+}
+
+model Tax {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name          String
+  nameLocalized String? @map("name_localized")
+  rate          Float // the tax rate — required, updatable
+
+  // Add tax-specific fields here (e.g. rate, type) once you share the Tax spec
+  taxGroups                    TaxGroup[]                  @relation("TaxGroupTaxes")
+  orderTax                     OrderTax?                   @relation("OrderTaxes")
+  orderProductTax              OrderProductTax?            @relation("OrderProductTaxes")
+  orderProductOptionTaxes      OrderProductOptionTax?      @relation("OrderProductOptionTaxes")
+  orderChargeTaxes             OrderChargeTax?             @relation("OrderChargeTaxes")
+  orderComboProductTaxes       OrderComboProductTax?       @relation("OrderComboProductTaxes")
+  orderComboProductOptionTaxes OrderComboProductOptionTax? @relation("OrderComboProductOptionTaxes")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("taxes")
+}
+
+model Charge {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name          String
+  nameLocalized String?     @map("name_localized")
+  type          ChargeType? @map("type")
+  orderTypes    OrderType[] @map("order_types")
+  isAutoApplied Boolean?    @map("is_auto_applied")
+  value         Float
+  isOpenCharge  Boolean     @map("is_open_charge")
+
+  // --- Relations ---
+  taxGroupId  String?      @unique @map("tax_group_id")
+  taxGroup    TaxGroup?    @relation(fields: [taxGroupId], references: [id])
+  branches    Branch[]     @relation("BranchCharges")
+  orderCharge OrderCharge?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("charges")
+}
+
+model Section {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name          String?
+  nameLocalized String? @map("name_localized")
+
+  // --- Relations ---
+  branchId String @map("branch_id")
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  revenueCenter Json? @map("revenue_center") // embedded object, not a relation
+
+  tables Table[] // inverse of Table.section
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("sections")
+}
+
+model Table {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name                String?
+  status              TableStatus
+  seats               Int?
+  acceptsReservations Boolean?    @map("accepts_reservations")
+  // --- Relations ---
+
+  sectionId String?  @map("section_id")
+  section   Section? @relation(fields: [sectionId], references: [id])
+  order     Order?
+
+  revenueCenter Json? @map("revenue_center") // embedded object, not a relation
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("tables")
+}
+
+model Device {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name             String
+  code             String?
+  inUse            Boolean?   @map("in_use")
+  reference        String     @unique
+  type             DeviceType
+  latitude         Float?
+  longitude        Float?
+  isBlocked        Boolean?   @map("is_blocked")
+  localSettings    Json?      @map("local_settings")
+  model            String?
+  build            Int?
+  appVersion       String?    @map("app_version")
+  systemVersion    String?    @map("system_version")
+  settings         Json?
+  isOnlineReceiver Boolean?   @map("is_online_receiver")
+  lastSyncAt       DateTime?  @map("last_sync_at")
+  lastSeenAt       DateTime?  @map("last_seen_at")
+  lastOrderAt      DateTime?  @map("last_order_at")
+
+  // --- Relations ---
+
+  branchId String @map("branch_id")
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  revenueCenter Json? @map("revenue_center") // embedded object, not a relation (same pattern as Section/Table)
+
+  group String? @map("group") // spec types this as `string`, not `object`/`array` — kept as plain field, not a relation, despite `includable` tag
+
+  tags Tag[] @relation("DeviceTags") // pivot shown is plain {device_id, tag_id} -> no custom attrs\
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("devices")
+}
+
+//  {<---------- Order Model ---------->}
+model Order {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  reference                  String?
+  referenceX                 String?   @map("reference_x")
+  appId                      String?   @map("app_id")
+  number                     Int?
+  type                       OrderType // reused existing enum
+  source                     Int // Order Source enum — values not yet given
+  status                     Int // Order Status enum — values not yet given
+  deliveryStatus             Int?      @map("delivery_status")
+  guests                     Int
+  kitchenNotes               String?   @map("kitchen_notes")
+  customerNotes              String?   @map("customer_notes")
+  businessDate               DateTime  @map("business_date") @db.Date
+  subtotalPrice              Float     @map("subtotal_price")
+  discountAmount             Float     @map("discount_amount")
+  roundingAmount             Float     @map("rounding_amount")
+  totalPrice                 Float     @map("total_price")
+  taxExclusiveDiscountAmount Float     @map("tax_exclusive_discount_amount")
+  delayInSeconds             Int?      @map("delay_in_seconds")
+  discountType               Int       @map("discount_type") // Discount Type enum — values not yet given
+
+  meta                    Json? // arbitrary nested integration data (foodics.*, uuid, joined_orders, etc.) — stays JSON, not modeled field-by-field
+  taxReportingTransaction Json? @map("tax_reporting_transaction") // no field spec given yet — placeholder JSON pending spec
+
+  // --- Relations ---
+
+  branchId String @map("branch_id")
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  tableId String? @unique @map("table_id")
+  table   Table?  @relation(fields: [tableId], references: [id])
+
+  creatorId String @unique @map("creator_id")
+  creator   User   @relation("OrderCreator", fields: [creatorId], references: [id])
+
+  closerId String? @unique @map("closer_id")
+  closer   User?   @relation("OrderCloser", fields: [closerId], references: [id])
+
+  driverId String? @unique @map("driver_id")
+  driver   User?   @relation("OrderDriver", fields: [driverId], references: [id])
+
+  // self-relation: an order can reference its original order (returns/splits)
+  originalOrderId String? @map("original_order_id")
+  originalOrder   Order?  @relation("OrderReturns", fields: [originalOrderId], references: [id])
+  relatedOrders   Order[] @relation("OrderReturns")
+
+  customerId String?   @unique @map("customer_id")
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
+  customerAddressId String?          @unique @map("customer_address_id")
+  customerAddress   CustomerAddress? @relation(fields: [customerAddressId], references: [id])
+
+  discountId String?   @unique @map("discount_id")
+  discount   Discount? @relation(fields: [discountId], references: [id])
+
+  couponId String? @unique @map("coupon_id")
+  coupon   Coupon? @relation(fields: [couponId], references: [id])
+
+  giftCardId String?   @unique @map("gift_card_id")
+  giftCard   GiftCard? @relation(fields: [giftCardId], references: [id])
+
+  promotionId String?    @unique @map("promotion_id")
+  promotion   Promotion? @relation(fields: [promotionId], references: [id])
+
+  revenueCenter Json? @map("revenue_center") // same JSON-snapshot pattern as Section/Table/Device
+
+  payments OrderPayment[]
+  charges  OrderCharge[]
+  taxes    OrderTax[]
+  products OrderProduct[]
+  combos   OrderCombo[]
+  tags     Tag[]          @relation("OrderTags") // no pivot shown -> plain many-to-many
+
+  openedAt          DateTime? @map("opened_at")
+  dueAt             DateTime? @map("due_at")
+  kitchenReceivedAt DateTime? @map("kitchen_received_at")
+  kitchenDoneAt     DateTime? @map("kitchen_done_at")
+  driverAssignedAt  DateTime? @map("driver_assigned_at")
+  dispatchedAt      DateTime? @map("dispatched_at")
+  driverCollectedAt DateTime? @map("driver_collected_at")
+  deliveredAt       DateTime? @map("delivered_at")
+  closedAt          DateTime? @map("closed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("orders")
+}
+
+// Top-level order taxes — pivot: {amount, rate, tax_exclusive_discount_amount}
+model OrderTax {
+  id                         String @id @default(uuid())
+  orderId                    String @map("order_id")
+  order                      Order  @relation(fields: [orderId], references: [id])
+  taxId                      String @unique @map("tax_id")
+  tax                        Tax    @relation("OrderTaxes", fields: [taxId], references: [id])
+  amount                     Float
+  rate                       Float
+  taxExclusiveDiscountAmount Float? @map("tax_exclusive_discount_amount")
+
+  @@map("order_taxes")
+}
+
+model OrderProduct {
+  id                         String    @id @default(uuid())
+  discountType               Int?      @map("discount_type")
+  quantity                   Int
+  returnedQuantity           Int?      @map("returned_quantity")
+  unitPrice                  Float     @map("unit_price")
+  discountAmount             Float     @map("discount_amount")
+  totalPrice                 Float     @map("total_price")
+  totalCost                  Float     @map("total_cost")
+  taxExclusiveDiscountAmount Float     @map("tax_exclusive_discount_amount")
+  taxExclusiveUnitPrice      Float     @map("tax_exclusive_unit_price")
+  taxExclusiveTotalPrice     Float     @map("tax_exclusive_total_price")
+  status                     Int // Product Status enum — values not yet given
+  isIngredientsWasted        Boolean   @map("is_ingredients_wasted")
+  isIngredientsReturned      Boolean   @map("is_ingredients_returned")
+  delayInSeconds             Int?      @map("delay_in_seconds")
+  kitchenNotes               String?   @map("kitchen_notes")
+  meta                       Json?
+  addedAt                    DateTime  @map("added_at")
+  closedAt                   DateTime? @map("closed_at")
+  voidReason                 String?   @map("void_reason")
+  voidTag                    Json?     @map("void_tag") // no field spec given yet — placeholder JSON pending spec
+
+  // --- Relations ---
+
+  orderId String @map("order_id")
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  productId String  @unique @map("product_id")
+  product   Product @relation(fields: [productId], references: [id]) // catalog reference
+
+  discountId String?   @unique @map("discount_id")
+  discount   Discount? @relation("OrderProductDiscount", fields: [discountId], references: [id])
+
+  creatorId String? @unique @map("creator_id")
+  creator   User?   @relation("OrderProductCreator", fields: [creatorId], references: [id])
+
+  voiderId String? @unique @map("voider_id")
+  voider   User?   @relation("OrderProductVoider", fields: [voiderId], references: [id])
+
+  promotionId String?    @unique @map("promotion_id")
+  promotion   Promotion? @relation("OrderProductPromotion", fields: [promotionId], references: [id])
+
+  timedEvents TimedEvent[] @relation("OrderProductTimedEvents") // no pivot data shown -> plain relation
+
+  taxes   OrderProductTax[]
+  options OrderProductOption[]
+
+  @@map("order_products")
+}
+
+// pivot: {amount, rate, tax_exclusive_discount_amount} — same real-data pattern as OrderTax
+model OrderProductTax {
+  id                         String       @id @default(uuid())
+  orderProductId             String       @map("order_product_id")
+  orderProduct               OrderProduct @relation(fields: [orderProductId], references: [id])
+  taxId                      String       @unique @map("tax_id")
+  tax                        Tax          @relation("OrderProductTaxes", fields: [taxId], references: [id])
+  amount                     Float
+  rate                       Float
+  taxExclusiveDiscountAmount Float?       @map("tax_exclusive_discount_amount")
+
+  @@map("order_product_taxes")
+}
+
+model OrderProductOption {
+  id                         String    @id @default(uuid())
+  quantity                   Int
+  partition                  Int?
+  unitPrice                  Float     @map("unit_price")
+  totalPrice                 Float     @map("total_price")
+  totalCost                  Float     @map("total_cost")
+  taxExclusiveUnitPrice      Float?    @map("tax_exclusive_unit_price")
+  taxExclusiveTotalPrice     Float?    @map("tax_exclusive_total_price")
+  taxExclusiveDiscountAmount Float?    @map("tax_exclusive_discount_amount")
+  addedAt                    DateTime? @map("added_at")
+
+  // --- Relations ---
+
+  orderProductId String       @map("order_product_id")
+  orderProduct   OrderProduct @relation(fields: [orderProductId], references: [id])
+
+  modifierOptionId String          @unique @map("modifier_option_id")
+  modifierOption   ModifierOption? @relation(fields: [modifierOptionId], references: [id])
+
+  taxes OrderProductOptionTax[]
+
+  @@map("order_product_options")
+}
+
+model OrderProductOptionTax {
+  id                         String             @id @default(uuid())
+  orderProductOptionId       String             @map("order_product_option_id")
+  orderProductOption         OrderProductOption @relation(fields: [orderProductOptionId], references: [id])
+  taxId                      String             @unique @map("tax_id")
+  tax                        Tax                @relation("OrderProductOptionTaxes", fields: [taxId], references: [id])
+  amount                     Float
+  rate                       Float
+  taxExclusiveDiscountAmount Float?             @map("tax_exclusive_discount_amount")
+
+  @@map("order_product_option_taxes")
+}
+
+model OrderCharge {
+  id                 String @id @default(uuid())
+  amount             Float
+  taxExclusiveAmount Float  @map("tax_exclusive_amount")
+
+  orderId String @map("order_id")
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  chargeId String  @unique @map("charge_id")
+  charge   Charge? @relation(fields: [chargeId], references: [id])
+
+  taxes OrderChargeTax[]
+
+  @@map("order_charges")
+}
+
+model OrderChargeTax {
+  id                         String      @id @default(uuid())
+  orderChargeId              String      @map("order_charge_id")
+  orderCharge                OrderCharge @relation(fields: [orderChargeId], references: [id])
+  taxId                      String      @unique @map("tax_id")
+  tax                        Tax         @relation("OrderChargeTaxes", fields: [taxId], references: [id])
+  amount                     Float
+  rate                       Float
+  taxExclusiveDiscountAmount Float?      @map("tax_exclusive_discount_amount")
+
+  @@map("order_charge_taxes")
+}
+
+model OrderPayment {
+  id           String   @id @default(uuid())
+  amount       Float
+  tendered     Float
+  tips         Float
+  businessDate DateTime @map("business_date") @db.Date
+  addedAt      DateTime @map("added_at")
+  meta         Json?
+
+  orderId String @map("order_id")
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  userId String? @unique @map("user_id") // nullable — "null if payment came from API"
+  user   User?   @relation(fields: [userId], references: [id])
+
+  paymentMethodId String        @map("payment_method_id")
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+
+  @@map("order_payments")
+}
+
+model OrderCombo {
+  id               String @id @default(uuid())
+  discountType     Int?   @map("discount_type")
+  quantity         Int
+  returnedQuantity Int?   @map("returned_quantity")
+  discountAmount   Float  @map("discount_amount")
+
+  orderId String @map("order_id")
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  comboSizeId String     @unique @map("combo_size_id")
+  comboSize   ComboSize? @relation(fields: [comboSizeId], references: [id]) // -> combo_size.combo already resolves via existing ComboSize.combo relation
+
+  discountId String?   @unique @map("discount_id")
+  discount   Discount? @relation("OrderComboDiscount", fields: [discountId], references: [id])
+
+  products OrderComboProduct[]
+
+  @@map("order_combos")
+}
+
+model OrderComboProduct {
+  id                         String    @id @default(uuid())
+  discountType               Int?      @map("discount_type")
+  quantity                   Int
+  unitPrice                  Float     @map("unit_price")
+  discountAmount             Float     @map("discount_amount")
+  totalPrice                 Float     @map("total_price")
+  totalCost                  Float     @map("total_cost")
+  taxExclusiveDiscountAmount Float?    @map("tax_exclusive_discount_amount")
+  taxExclusiveUnitPrice      Float?    @map("tax_exclusive_unit_price")
+  taxExclusiveTotalPrice     Float?    @map("tax_exclusive_total_price")
+  status                     Int // Product Status enum
+  isIngredientsWasted        Boolean   @map("is_ingredients_wasted")
+  isIngredientsReturned      Boolean   @map("is_ingredients_returned")
+  delayInSeconds             Int?      @map("delay_in_seconds")
+  kitchenNotes               String?   @map("kitchen_notes")
+  meta                       Json?
+  addedAt                    DateTime? @map("added_at")
+  closedAt                   DateTime? @map("closed_at")
+  voidReason                 String?   @map("void_reason")
+  voidTag                    Json?     @map("void_tag")
+
+  orderComboId String     @map("order_combo_id")
+  orderCombo   OrderCombo @relation(fields: [orderComboId], references: [id])
+
+  productId String  @unique @map("product_id")
+  product   Product @relation("OrderComboProductProduct", fields: [productId], references: [id])
+
+  discountId String?   @unique @map("discount_id")
+  discount   Discount? @relation("OrderComboProductDiscount", fields: [discountId], references: [id])
+
+  creatorId String? @unique @map("creator_id")
+  creator   User?   @relation("OrderComboProductCreator", fields: [creatorId], references: [id])
+
+  voiderId String? @unique @map("voider_id")
+  voider   User?   @relation("OrderComboProductVoider", fields: [voiderId], references: [id])
+
+  promotionId String?    @unique @map("promotion_id")
+  promotion   Promotion? @relation("OrderComboProductPromotion", fields: [promotionId], references: [id])
+
+  comboOptionId String          @map("combo_option_id")
+  comboOption   ComboItemOption @relation(fields: [comboOptionId], references: [id])
+
+  comboSizeId String    @unique @map("combo_size_id")
+  comboSize   ComboSize @relation("OrderComboProductSize", fields: [comboSizeId], references: [id])
+
+  timedEvents TimedEvent[] @relation("OrderComboProductTimedEvents")
+
+  taxes   OrderComboProductTax[]
+  options OrderComboProductOption[]
+
+  @@map("order_combo_products")
+}
+
+model OrderComboProductTax {
+  id                         String            @id @default(uuid())
+  orderComboProductId        String            @map("order_combo_product_id")
+  orderComboProduct          OrderComboProduct @relation(fields: [orderComboProductId], references: [id])
+  taxId                      String            @unique @map("tax_id")
+  tax                        Tax               @relation("OrderComboProductTaxes", fields: [taxId], references: [id])
+  amount                     Float
+  rate                       Float
+  taxExclusiveDiscountAmount Float?            @map("tax_exclusive_discount_amount")
+
+  @@map("order_combo_product_taxes")
+}
+
+model OrderComboProductOption {
+  id                         String    @id @default(uuid())
+  quantity                   Int
+  partition                  Int?
+  unitPrice                  Float     @map("unit_price")
+  totalPrice                 Float     @map("total_price")
+  totalCost                  Float     @map("total_cost")
+  taxExclusiveUnitPrice      Float?    @map("tax_exclusive_unit_price")
+  taxExclusiveTotalPrice     Float?    @map("tax_exclusive_total_price")
+  taxExclusiveDiscountAmount Float?    @map("tax_exclusive_discount_amount")
+  addedAt                    DateTime? @map("added_at")
+
+  orderComboProductId String            @map("order_combo_product_id")
+  orderComboProduct   OrderComboProduct @relation(fields: [orderComboProductId], references: [id])
+
+  modifierOptionId String          @unique @map("modifier_option_id")
+  modifierOption   ModifierOption? @relation(fields: [modifierOptionId], references: [id])
+
+  taxes OrderComboProductOptionTax[]
+
+  @@map("order_combo_product_options")
+}
+
+model OrderComboProductOptionTax {
+  id                         String                  @id @default(uuid())
+  orderComboProductOptionId  String                  @map("order_combo_product_option_id")
+  orderComboProductOption    OrderComboProductOption @relation(fields: [orderComboProductOptionId], references: [id])
+  taxId                      String                  @unique @map("tax_id")
+  tax                        Tax                     @relation("OrderComboProductOptionTaxes", fields: [taxId], references: [id])
+  amount                     Float
+  rate                       Float
+  taxExclusiveDiscountAmount Float?                  @map("tax_exclusive_discount_amount")
+
+  @@map("order_combo_product_option_taxes")
+}
+
+model Customer {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name      String?
+  dialCode  Int?      @map("dial_code")
+  phone     String?
+  email     String?
+  gender    Int? // 1 = Male, 2 = Female — small enough to enum if you'd like, flag if so
+  birthDate DateTime? @map("birth_date") @db.Date
+
+  houseAccountLimit     Int?    @map("house_account_limit") // scoped field (customers.accounts.read/write)
+  houseAccountBalance   Float?  @map("house_account_balance") // scoped field (customers.accounts.read) — read-only
+  loyaltyBalance        Float?  @map("loyalty_balance") // scoped field (customers.loyalty.read) — read-only
+  isLoyaltyEnabled      Boolean @map("is_loyalty_enabled")
+  isBlacklisted         Boolean @map("is_blacklisted")
+  isHouseAccountEnabled Boolean @map("is_house_account_enabled")
+
+  lastOrderAt DateTime? @map("last_order_at")
+  orderCount  Int?      @map("order_count")
+
+  // --- Relations ---
+
+  tags      Tag[]             @relation("CustomerTags") // sample shows {id} only, no pivot -> plain many-to-many
+  addresses CustomerAddress[] // inverse of CustomerAddress.customer (one-to-many)
+  order     Order?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("customers")
+}
+
+model CustomerAddress {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name        String?
+  description String?
+  latitude    String?
+  longitude   String?
+
+  // --- Relations ---
+
+  customerId String   @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  order Order?
+
+  deliveryZoneId String?       @unique @map("delivery_zone_id")
+  deliveryZone   DeliveryZone? @relation(fields: [deliveryZoneId], references: [id])
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("customer_addresses")
+}
+
+model GiftCardProduct {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name          String
+  nameLocalized String?       @map("name_localized")
+  image         String?
+  sku           String        @unique
+  barcode       String?
+  pricingMethod PricingMethod @map("pricing_method") // now correctly using the enum (1=FIXED_PRICE, 2=OPEN_PRICE)
+  price         Float
+  isActive      Boolean?      @map("is_active")
+
+  // --- Relations ---
+
+  categoryId String   @unique @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  tags   Tag[]       @relation("GiftCardProductTags") // pivot: {gift_card_product_id, tag_id} only -> plain many-to-many
+  groups MenuGroup[] @relation("MenuGroupGiftCardProducts") // pivot: {gift_card_product_id, group_id} only -> plain many-to-many
+
+  branches GiftCardProductBranch[] // pivot: {gift_card_product_id, branch_id, is_active} -> real extra field -> explicit pivot
+  giftCard GiftCard?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("gift_card_products")
+}
+
+model GiftCardProductBranch {
+  id String @id @default(uuid())
+
+  giftCardProductId String          @map("gift_card_product_id")
+  giftCardProduct   GiftCardProduct @relation(fields: [giftCardProductId], references: [id])
+
+  branchId String  @unique @map("branch_id")
+  branch   Branch? @relation(fields: [branchId], references: [id])
+
+  isActive Boolean? @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([giftCardProductId, branchId])
+  @@map("gift_card_product_branches")
+}
+
+model GiftCard {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  amount  Float
+  balance Float
+  code    String?
+
+  // --- Relations ---
+
+  orderId String? @map("order_id")
+  order   Order?
+
+  giftCardProductId String          @unique @map("gift_card_product_id")
+  giftCardProduct   GiftCardProduct @relation(fields: [giftCardProductId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("gift_cards")
+}
+
+model Coupon {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name        String
+  code        String   @unique
+  maximumUses Int      @map("maximum_uses")
+  isActive    Boolean? @map("is_active")
+
+  fromDate DateTime @map("from_date") @db.Date
+  toDate   DateTime @map("to_date") @db.Date
+  fromTime Int      @map("from_time") // hour 0-23, same pattern as Promotion/TimedEvent
+  toTime   Int      @map("to_time")
+
+  isSat Boolean? @map("is_sat")
+  isSun Boolean? @map("is_sun")
+  isMon Boolean? @map("is_mon")
+  isTue Boolean? @map("is_tue")
+  isWed Boolean? @map("is_wed")
+  isThu Boolean? @map("is_thu")
+  isFri Boolean? @map("is_fri")
+
+  // --- Relations ---
+
+  discountId String   @unique @map("discount_id")
+  order      Order?
+  discount   Discount @relation(fields: [discountId], references: [id])
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("coupons")
+}
+
+model PaymentMethod {
+  id        String @id @default(uuid())
+  foodicsId String @unique
+
+  name           String
+  nameLocalized  String?           @map("name_localized")
+  code           String?
+  autoOpenDrawer Boolean?          @map("auto_open_drawer")
+  type           PaymentMethodType
+  isActive       Boolean?          @map("is_active")
+  index          Int?
+
+  // --- Relations ---
+
+  payments OrderPayment[] // inverse of OrderPayment.paymentMethod
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("payment_methods")
+}
+
+enum PaymentMethodType {
+  CASH // 1
+  CARD // 2
+  OTHER // 3
+  GIFT_CARD // 4
+  HOUSE_ACCOUNT // 5
+  THIRD_PARTY // 7
+}
+
+enum ConditionType {
+  QUANTITY_BASED // 1
+  SPENDING_BASED // 2
+}
+
+enum PromotionType {
+  BASIC // 1
+  ADVANCED // 2
+}
+
+enum RewardType {
+  PERCENTAGE_DISCOUNT_ON_PRODUCTS // 1
+  AMOUNT_DISCOUNT_ON_PRODUCTS // 2
+  PERCENTAGE_DISCOUNT_ON_ORDER // 3
+  AMOUNT_DISCOUNT_ON_ORDER // 4
+  FIXED_PRICE // 5
+}
+
+enum TagType {
+  CUSTOMER_TAG // 1
+  BRANCH_TAG // 2
+  INVENTORY_ITEM_TAG // 3
+  ORDER_TAG // 4
+  SUPPLIER_TAG // 5
+  USER_TAG // 6
+  PRODUCT_TAG // 7
+  DEVICE_TAG // 8
+  REVENUE_CENTER_TAG // 9
+}
+
+enum OrderType {
+  DINE_IN // 1
+  PICK_UP // 2
+  DELIVERY // 3
+  DRIVE_THRU // 4
+}
+
+enum ChargeType {
+  AMOUNT // 1
+  PERCENTAGE // 2
+}
+
+enum TableStatus {
+  FREE // 1
+  OCCUPIED // 2
+  CHECK_PRINTED // 3
+  RESERVED // 4
+}
+
+enum DeviceType {
+  CASHIER // 1
+  KDS // 2
+  NOTIFIER // 4
+  DISPLAY // 5
+  SUB_CASHIER // 6
+  FOODICS_ONE_CASHIER // 7
+  WAITER // 8
+}
+
+enum PricingMethod {
+  FIXED_PRICE // 1
+  OPEN_PRICE // 2
+}
+
+enum CostingMethod {
+  FIXED_COST // 1
+  CALCULATE_FROM_INGREDIENTS // 2
+}
+
+enum UserRole {
+  ADMIN
+  STORE
+  CUSTOMER
+}
