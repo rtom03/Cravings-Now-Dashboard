@@ -18,13 +18,15 @@ const getBranch = async (req: Request<IDParams>, res: Response) => {
         branchCategories: {
           include: {
             category: {
-              include: { groupProducts: true },
+              include: {
+                groupProducts: true,
+              },
             },
           },
         },
       },
     });
-    return res.json({ branch });
+    return res.json(branch);
   } catch (error: any) {
     console.error("Failed to fetch branches:", error);
     return res.status(500).json({

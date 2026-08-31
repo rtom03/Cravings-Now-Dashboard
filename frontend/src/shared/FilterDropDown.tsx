@@ -1,10 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Check } from "lucide-react";
-
-export interface FilterOption {
-  value: string;
-  label: string;
-}
+import { FilterOption } from "../types/compo.type";
 
 interface FilterDropdownProps {
   options: FilterOption[];

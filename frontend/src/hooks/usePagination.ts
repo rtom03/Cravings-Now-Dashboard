@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
  * automatically, rather than the caller having to remember to reset it on
  * every filter/search/sort change.
  */
-export function usePagination<T>(items: T[], initialPageSize = 25) {
+export function usePagination<T>(items: T[], initialPageSize = 10) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSizeState] = useState(initialPageSize);
 

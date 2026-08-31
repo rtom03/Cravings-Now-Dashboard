@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Plus, Search, Trash2 } from "lucide-react";
 import {
   DataTable,
+  DeleteCell,
   ToggleCell,
   type DataTableColumn,
 } from "./../../shared/DataTable";
@@ -167,7 +168,7 @@ const INITIAL_AREAS: DeliveryArea[] = [
 
 // ─── Small editable-number cell (same visual language as Working Hours' Max Orders field) ──
 
-function EditableNumberCell({
+export function EditableNumberCell({
   value,
   onChange,
 }: {
@@ -239,6 +240,7 @@ export default function DeliveryAreasTab({
       width: "90px",
       sticky: true,
       filterable: true,
+      sortable: false,
       filterAccessor: (row) => (row.isActive ? "on" : "off"),
       filterOptions: () => [
         { value: "on", label: "Enabled" },
@@ -251,6 +253,7 @@ export default function DeliveryAreasTab({
       key: "country",
       label: "Country",
       width: "110px",
+      sortable: false,
       filterable: true,
       filterAccessor: (row) => row.country,
       filterOptions: (rows) => uniqueOptions(rows.map((r) => r.country)),
@@ -261,6 +264,7 @@ export default function DeliveryAreasTab({
       key: "province",
       label: "Province",
       width: "110px",
+      sortable: false,
       filterable: true,
       filterAccessor: (row) => row.province,
       filterOptions: (rows) => uniqueOptions(rows.map((r) => r.province)),
@@ -295,6 +299,7 @@ export default function DeliveryAreasTab({
       key: "overrideRate",
       label: "Override Rate?",
       width: "130px",
+      sortable: false,
       align: "center",
       skeletonVariant: "checkbox",
       render: (row) => (
@@ -322,6 +327,7 @@ export default function DeliveryAreasTab({
       key: "overrideMinOrderValue",
       label: "Override minimum order value?",
       width: "160px",
+      sortable: false,
       align: "center",
       skeletonVariant: "checkbox",
       render: (row) => (
@@ -353,6 +359,7 @@ export default function DeliveryAreasTab({
     {
       key: "overrideDeliveryMins",
       label: "Override delivery mins?",
+      sortable: false,
       width: "150px",
       align: "center",
       skeletonVariant: "checkbox",
@@ -398,19 +405,10 @@ export default function DeliveryAreasTab({
       key: "remove",
       label: "Remove",
       width: "80px",
+      sortable: false,
       align: "center",
       skeletonVariant: "icon",
-      render: (row) => (
-        <div className="flex justify-center">
-          <button
-            aria-label={`Remove ${row.area}`}
-            onClick={() => removeArea(row.id)}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-rose-500/15 text-rose-400 transition hover:bg-rose-500/25"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
-      ),
+      render: (row) => <DeleteCell id={row.id} onDel={removeArea} />,
     },
   ];
 

@@ -1,12 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import { useUserStore } from "../store/userStore";
-import { adminLoginAuth, login } from "../services/apiServices";
-import { Admin, User } from "../constants/index.type";
+import { adminLoginAuth, storeLogin } from "../services/apiServices";
 
 const useLoginMutation = () => {
   const { setUser } = useUserStore();
   return useMutation({
-    mutationFn: login,
+    mutationFn: storeLogin,
     onSuccess: (data) => {
       setUser(data);
     },

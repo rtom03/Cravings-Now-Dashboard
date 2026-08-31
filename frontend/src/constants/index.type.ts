@@ -1,4 +1,4 @@
-export type Admin = {
+export type UserLoginProps = {
   email: string;
   password: string;
 };
@@ -10,6 +10,7 @@ export type User = {
   email: string;
   name: string;
   role: UserRole;
+  branchId?: string;
 };
 
 export type LoginResponse = {

@@ -8,21 +8,31 @@ import {
   Plus,
   Store,
   Cloud,
+  Package,
+  Clock,
+  CalendarClock,
+  MapPin,
+  Megaphone,
 } from "lucide-react";
 import HelpTable from "./HelpCenterTable";
-import { useBranches } from "../../api/branchQuery";
 import { useBranchStore } from "../../store/branchStore";
 import { isBranchOpen } from "../../constants";
-import { Branch, BranchResponse, toBranchWithProducts } from "../../types/type";
+import { Branch, Branches } from "../../types/type";
 import BranchSettingsModal from "./SettingsModal";
 import MenuModal from "./MenuModal";
 import AppLoader from "../../ui/AppLoader";
 import { useBrandStore } from "../../store/brandStore";
+import { useUserStore } from "../../store/userStore";
+import { useSuperGroupById } from "../../api/groupQuery";
+import { useBranch } from "../../api/branchQuery";
+import ProductsCatalog from "./ProductsCatalog";
+import WorkingHoursTab from "./WorkingHoursTab";
+import DeliveryAreasTab from "./Deliveryareatab";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface BranchesPageProps {
-  branches: BranchResponse["branches"];
+  branches: Branches["branches"];
   totalLimit: number;
   posEnabled: number;
   posLimit: number;
@@ -335,23 +345,79 @@ const BranchesPage = ({
 
 export default function Branches() {
   const { selectedBrandId } = useBrandStore();
-  const { data, isLoading, error } = useBranches(selectedBrandId!);
+  const { user } = useUserStore();
+  const isAdmin = user?.user.role === "ADMIN";
+
+  const TABS = [
+    {
+      key: "catalog",
+      label: "Catalog",
+      icon: Package,
+      content: <ProductsCatalog setOpen={() => false} />,
+    },
+    {
+      key: "hours",
+      label: "Working Hours",
+      icon: Clock,
+      content: <WorkingHoursTab />,
+    },
+    {
+      key: "slots",
+      label: "Scheduled Delivery Slots",
+      icon: CalendarClock,
+      content: <WorkingHoursTab />,
+    },
+    {
+      key: "areas",
+      label: "Delivery Areas and Rates",
+      icon: MapPin,
+      content: <DeliveryAreasTab branchName="icm" />,
+    },
+    {
+      key: "banner",
+      label: "Notice Banner",
+      icon: Megaphone,
+      content: <WorkingHoursTab />,
+    },
+  ];
+
+  // Only fetch the shape each role actually needs — same `enabled` pattern
+  // used for useGroups earlier, so the other role's query never fires.
+  const { data, isLoading, error } = useSuperGroupById(
+    selectedBrandId!,
+    isAdmin,
+  );
+  const { data: branch, isLoading: isBranchLoading } = useBranch(
+    user?.user.branchId!,
+    !isAdmin,
+  );
+  // console.log(data);
+
   const setBranches = useBranchStore((state) => state.setBranches);
   const { branches } = useBranchStore();
+
   const [menuModal, setMenuModal] = useState<MenuModalState>(CLOSED_MENU_MODAL);
   const [settingsModal, setSettingsModal] = useState<SettingsModalState>(
     CLOSED_SETTINGS_MODAL,
   );
-  // console.log("DATA CACHED TO STORE", branches);
   const [deleteModal, setDeleteModal] =
     useState<DeleteModalState>(CLOSED_DELETE_MODAL);
-  useEffect(() => {
-    if (data) {
-      setBranches(data);
-    }
-  }, [data, setBranches]);
 
-  if (isLoading) {
+  // ─── Normalize both shapes into one array, once, right here ─────────────
+  // Admin: `data` is already GroupBranch[] (a real list of branches).
+  // Store user: `branch` is a single GroupBranch — wrapped in a one-item
+  // array so BranchesPage never has to know which role it's rendering for.
+  useEffect(() => {
+    if (isAdmin && data) {
+      setBranches(data);
+    } else if (!isAdmin && branch) {
+      setBranches([branch]);
+    }
+  }, [isAdmin, data, branch, setBranches]);
+
+  const loading = isAdmin ? isLoading : isBranchLoading;
+
+  if (loading) {
     return (
       <div className="bg-gray-50 min-h-screen p-5 flex items-center justify-center">
         <AppLoader />
@@ -386,6 +452,7 @@ export default function Branches() {
           id={menuModal.id}
           open={menuModal.open}
           setOpen={() => setMenuModal((prev) => ({ ...prev, open: false }))}
+          tabs={TABS!}
         />
       )}
       {settingsModal.open && (

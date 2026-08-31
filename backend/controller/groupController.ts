@@ -1,38 +1,18 @@
 import { Request, Response } from "express";
 import { prisma } from "../utils/db";
-import { syncCategories } from "../services/foodics/categories.service";
-import { FdGroup, FoodicsGroupsProducts } from "../types/index.types";
-import {
-  appendCatIdGrpPrd,
-  syncGroup,
-  syncGroupProducts,
-  // syncGroupProducts,
-} from "../services/foodics/groups.service";
 import { IDParams } from "./branchController";
-
-const syncGrpEp = async (req: Request, res: Response) => {
-  const id = "9c1e4e06-5000-4603-ab30-b0ca5f146b51";
-  try {
-    // const group = await syncGroup(id);
-    const groupProducts = await syncGroupProducts(id);
-    // return res.json({ group });
-    return res.json({ groupProducts });
-  } catch (error) {
-    console.log(error);
-  }
-};
 
 const getGroups = async (req: Request, res: Response) => {
   try {
     const groups = await prisma.group.findMany();
-    res.status(201).json({ groups });
+    res.status(201).json(groups);
   } catch (error) {
     console.log(error);
     res.status(500).json(`An err occured while fetching data ${error}`);
   }
 };
 
-const getGroup = async (req: Request<IDParams>, res: Response) => {
+const getBranchByGroupId = async (req: Request<IDParams>, res: Response) => {
   const { id } = req.params;
   try {
     const group = await prisma.group.findUnique({ where: { id: id } });
@@ -49,94 +29,72 @@ const getGroup = async (req: Request<IDParams>, res: Response) => {
           mode: "insensitive",
         },
       },
-      include: {
-        branchCategories: {
-          include: {
-            category: {
-              include: { groupProducts: true },
-            },
-          },
-        },
-      },
     });
-    res.status(201).json({ data: { branches } });
+    res.status(201).json({ branches });
   } catch (error) {
     console.log(error);
     res.status(500).json(`An err occured while fetching data ${error}`);
   }
 };
 
-const upsertGroup = async (group: FdGroup) => {
-  return await prisma.group.upsert({
-    where: { foodicsId: group.id },
-    update: {
-      name: group.name,
-      nameLocalized: group.name_localized,
-      image: group.image,
-    },
-    create: {
-      foodicsId: group.id,
-      name: group.name,
-      nameLocalized: group.name_localized,
-      image: group.image,
-    },
-  });
-};
-const upsertGroupProducts = async (
-  product: FoodicsGroupsProducts,
-  catId: string,
-) => {
-  return await prisma.groupProducts.upsert({
-    where: { foodicsId: product.id },
-    update: {
-      name: product.name,
-      nameLocalized: product.name_localized,
-      sku: product.sku,
-      // group_name: "Scoop'd Ordable Menu",
-      image: product.image,
-      description: product.description,
-      descriptionLocalized: product.description_localized,
-      isActive: product.is_active,
-      isNonRevenue: product.is_non_revenue,
-      isReady: product.is_ready,
-      pricingMethod: product.pricing_method,
-      sellingMethod: product.selling_method,
-      costingMethod: product.costing_method,
-      preparationTime: product.preparation_time,
-      price: product.price,
-      cost: product.cost,
-      calories: product.calories,
-      walkingMinutesToBurnCalories: product.walking_minutes_to_burn_calories,
-      isHighSalt: product.is_high_salt,
-      pivot: product.pivot,
-      categoryId: catId,
-    },
-    create: {
-      foodicsId: product.id,
-      name: product.name,
-      nameLocalized: product.name_localized,
-      sku: product.sku,
-      // group_name: "Scoop'd Ordable Menu",
-      image: product.image,
-      description: product.description,
-      descriptionLocalized: product.description_localized,
-      isActive: product.is_active,
-      isNonRevenue: product.is_non_revenue,
-      isReady: product.is_ready,
-      pricingMethod: product.pricing_method,
-      sellingMethod: product.selling_method,
-      costingMethod: product.costing_method,
-      preparationTime: product.preparation_time,
-      price: product.price,
-      cost: product.cost,
-      calories: product.calories,
-      walkingMinutesToBurnCalories: product.walking_minutes_to_burn_calories,
-      isHighSalt: product.is_high_salt,
-      pivot: product.pivot,
-      categoryId: catId,
-    },
-  });
+const getProductByGroupId = async (req: Request<IDParams>, res: Response) => {
+  const { id } = req.params;
+  try {
+    const group = await prisma.group.findUnique({ where: { id: id } });
+
+    if (!group) {
+      return res.status(404).json({
+        message: "Group not found",
+      });
+    }
+    console.log(group.name);
+    const products = await prisma.groupProducts.findMany({
+      where: {
+        group_name: {
+          contains: group?.name,
+          mode: "insensitive",
+        },
+      },
+      include: { category: true },
+    });
+    res.status(201).json({ products });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(`An err occured while fetching data ${error}`);
+  }
 };
 
-// appendCatIdGrpPrd();
-export { upsertGroup, upsertGroupProducts, syncGrpEp, getGroups, getGroup };
+const getModifiersByProductId = async (
+  req: Request<IDParams>,
+  res: Response,
+) => {
+  const { id } = req.params;
+  try {
+    const productOption = await prisma.groupProducts.findUnique({
+      where: { id: id },
+      include: {
+        groupProductModifiers: {
+          include: {
+            modifier: {
+              include: {
+                options: {
+                  include: { modifierOption: { include: { branches: true } } },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    res.status(201).json({ productOption });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(`An err occured while fetching data ${error}`);
+  }
+};
+export {
+  getGroups,
+  getBranchByGroupId,
+  getProductByGroupId,
+  getModifiersByProductId,
+};

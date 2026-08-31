@@ -97,6 +97,62 @@ type AuthPayload = {
   branchId?: string;
 };
 
+interface FoodicsModifierOptionBranch {
+  id: string;
+  name: string;
+  name_localized: string | null;
+
+  pivot: {
+    price: number | null;
+    is_active: boolean;
+    is_in_stock: boolean;
+  };
+}
+
+interface FoodicsModifierOption {
+  id: string;
+  name: string;
+  name_localized: string | null;
+
+  sku: string | null;
+  barcode: string | null;
+
+  image: string | null;
+
+  price: number | null;
+  cost: number | null;
+
+  is_active: boolean;
+  costing_method: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+
+  branches: FoodicsModifierOptionBranch[];
+}
+
+interface FoodicsModifier {
+  id: string;
+  name: string;
+  name_localized: string | null;
+  is_ready: boolean;
+  reference: string;
+  options: FoodicsModifierOption[];
+  pivot: {
+    minimum_options: number;
+    maximum_options: number;
+    free_options: number;
+    default_options_ids: string[] | null;
+    excluded_options_ids: string[] | null;
+    is_splittable_in_half: boolean;
+    unique_options: boolean;
+    index: number;
+  };
+}
+
+interface ProductModifierModifierOptionsProps {
+  modifiers: FoodicsModifier[];
+}
 export {
   FoodicsBranch,
   FoodicsProductRaw,
@@ -104,4 +160,8 @@ export {
   FoodicsGroupsProducts,
   FdGroup,
   AuthPayload,
+  FoodicsModifier,
+  FoodicsModifierOption,
+  ProductModifierModifierOptionsProps,
+  FoodicsModifierOptionBranch,
 };

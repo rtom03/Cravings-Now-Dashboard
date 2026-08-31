@@ -229,7 +229,7 @@ export const LoginPage = ({
 
 export default function Login() {
   const loginMutate = useLoginMutation();
-  const { isPending, failureReason } = loginMutate;
+  const { isPending } = loginMutate;
   return (
     <LoginPage
       onLogin={(email, password) => {

@@ -5,6 +5,7 @@ import {
   syncProducts,
   // syncProductsWCatFilter,
 } from "../services/foodics/product.service";
+import { syncAllProductModifiers } from "../services/foodics/modifier.service";
 
 export const syncProdFd = async (req: Request, res: Response) => {
   try {
@@ -18,6 +19,8 @@ export const syncProdFd = async (req: Request, res: Response) => {
     console.log(error);
   }
 };
+
+// syncAllProductModifiers();
 
 const getProducts = async (req: Request, res: Response) => {
   try {

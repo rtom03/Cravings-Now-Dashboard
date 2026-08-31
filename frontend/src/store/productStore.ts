@@ -1,11 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { FoodicsProduct } from "../types/type";
+import { BrandProducts } from "../types/type";
 
 type productState = {
-  products: FoodicsProduct[];
-  setProduct: (products: FoodicsProduct[]) => void;
-  updateProduct: (productId: string, data: Partial<FoodicsProduct>) => void;
+  products: BrandProducts["products"];
+  setProduct: (products: BrandProducts["products"]) => void;
+  updateProduct: (
+    productId: string,
+    data: Partial<BrandProducts["products"]>,
+  ) => void;
   deleteProduct: (productId: string) => void;
   clearProduct: () => void;
 };

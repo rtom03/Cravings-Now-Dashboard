@@ -1,14 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Branch, BranchResponse, GroupBranch } from "../types/type";
+import { Branch, BranchDetails, Branches } from "../types/type";
 
 type BranchState = {
-  branches: BranchResponse["branches"];
-  selectedBranch: GroupBranch | null;
-  setSelectedBranch: (branch: GroupBranch) => void;
-  setBranches: (branches: BranchResponse["branches"]) => void;
-  // updateBranch: (branchId: string, data: Partial<Branch>) => void;
-  // deleteBranch: (branchId: string) => void;
+  branches: Branches["branches"];
+  selectedBranch: BranchDetails | null;
+  setSelectedBranch: (branch: BranchDetails) => void;
+  setBranches: (branches: Branches["branches"]) => void;
+  updateBranch: (branchId: string, data: Partial<Branch>) => void;
+  deleteBranch: (branchId: string) => void;
   clearBranches: () => void;
 };
 
@@ -20,17 +20,17 @@ export const useBranchStore = create<BranchState>()(
       setSelectedBranch: (selectedBranch) => set({ selectedBranch }),
       setBranches: (branches) => set({ branches }),
 
-      // updateBranch: (branchId, data) =>
-      //   set((state) => ({
-      //     branches: state.branches.map((branch) =>
-      //       branch.id === branchId ? { ...branch, ...data } : branch,
-      //     ),
-      //   })),
+      updateBranch: (branchId, data) =>
+        set((state) => ({
+          branches: state.branches.map((branch) =>
+            branch.id === branchId ? { ...branch, ...data } : branch,
+          ),
+        })),
 
-      // deleteBranch: (branchId) =>
-      //   set((state) => ({
-      //     branches: state.branches.filter((branch) => branch.id !== branchId),
-      //   })),
+      deleteBranch: (branchId) =>
+        set((state) => ({
+          branches: state.branches.filter((branch) => branch.id !== branchId),
+        })),
 
       clearBranches: () => set({ branches: [] }),
     }),

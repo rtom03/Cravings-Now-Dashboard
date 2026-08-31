@@ -1,7 +1,6 @@
 import express from "express";
-import { getBranch, getBranches } from "../controller/branchController";
-import { syncProducts } from "../services/foodics/product.service";
-import { getProducts, syncProdFd } from "../controller/productController";
+
+import { syncProdFd } from "../controller/productController";
 
 const productRoutes = express.Router();
 

@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { MouseEventHandler, useMemo, useState } from "react";
 import { HeaderCell, PlainHeaderCell, type Column } from "./TableHeaderCell";
-import type { FilterOption } from "../shared/FilterDropDown";
+import { FilterOption } from "../types/compo.type";
+import { HistoryIcon, Trash2 } from "lucide-react";
 
 // ─── Column contract ────────────────────────────────────────────────────────
 // Extends the existing generic Column<T> (sort/filter contract already
@@ -351,4 +352,30 @@ export function ToggleCell({ on }: { on: boolean }) {
 
 export function DashCell() {
   return <span className="text-slate-500">–</span>;
+}
+export function DeleteCell({
+  id,
+  onDel,
+}: {
+  id: string;
+  onDel: (id: string) => void;
+}) {
+  return (
+    <div className="flex justify-center">
+      <button
+        onClick={() => onDel(id)}
+        className="flex h-7 w-7 items-center justify-center rounded-full bg-rose-500/15 text-rose-400 transition hover:bg-rose-500/25"
+      >
+        <Trash2 size={14} />
+      </button>
+    </div>
+  );
+}
+
+export function HistoryCell() {
+  return (
+    <span className="flex justify-center text-slate-500">
+      <HistoryIcon size={20} color="blue" />
+    </span>
+  );
 }

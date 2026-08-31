@@ -1,4 +1,4 @@
-import { FilterOption } from "../shared/FilterDropDown";
+import { FilterOption } from "../types/compo.type";
 
 export function uniqueOptions(values: string[]): FilterOption[] {
   return Array.from(new Set(values))

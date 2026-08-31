@@ -42,8 +42,21 @@ export const createSUser = async (req: Request, res: Response) => {
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
     const getBranch = await prisma.branch.findFirst({
-      where: { name: branch },
+      where: {
+        name: {
+          equals: branch,
+          mode: "insensitive", // "krispy kreme novare" still matches "Krispy Kreme Novare"
+        },
+      },
     });
+
+    if (!getBranch) {
+      return res.status(404).json({
+        message: `No branch found matching "${branch}"`,
+      });
+    }
+
+    // console.log(getBranch);
 
     // ---------------- Create admin ----------------
 
@@ -136,6 +149,7 @@ export const loginSUser = async (req: Request, res: Response) => {
         email: user.email,
         name: user.name,
         role: user.role,
+        branchId: user.branchId,
       },
     });
   } catch (error) {

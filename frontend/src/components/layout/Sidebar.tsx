@@ -10,7 +10,6 @@ import {
   ChevronDown,
   UserCircle,
   QrCode,
-  Globe,
   LogOut,
   Check,
 } from "lucide-react";
@@ -18,6 +17,7 @@ import { Groups } from "../../types/type";
 import { useUserStore } from "../../store/userStore";
 import { useGroups } from "../../api/groupQuery";
 import { useBrandStore } from "../../store/brandStore";
+import { UserRole } from "../../constants/index.type";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -35,6 +35,7 @@ function UserMenu({
   currentBrandId,
   onBrandChange,
   onLogout,
+  user,
 }: {
   onClose: () => void;
   userEmail: string | undefined;
@@ -42,6 +43,7 @@ function UserMenu({
   currentBrandId?: string;
   onBrandChange?: (id: string) => void;
   onLogout?: () => void;
+  user: UserRole;
 }) {
   const [branchListOpen, setBranchListOpen] = useState(false);
   const currentBrand =
@@ -65,37 +67,38 @@ function UserMenu({
 
       <div className="space-y-3 p-3">
         {/* Branch switcher */}
-        <div className="relative">
-          <button
-            onClick={() => setBranchListOpen((v) => !v)}
-            className="flex w-full items-center justify-between rounded-md border border-white/10 bg-[#0d0f14] px-3 py-2 text-[12.5px] text-slate-200 hover:border-white/20"
-          >
-            <span className="truncate">
-              {currentBrand?.name ?? "Select a branch"}
-            </span>
-            <ChevronDown size={13} className="shrink-0 text-slate-500" />
-          </button>
-          {branchListOpen && brands.length > 0 && (
-            <div className="absolute left-0 top-full z-30 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-white/10 bg-[#0d0f14] py-1 shadow-xl">
-              {brands.map((b) => (
-                <button
-                  key={b.id}
-                  onClick={() => {
-                    onBrandChange?.(b.id);
-                    setBranchListOpen(false);
-                  }}
-                  className="flex w-full items-center justify-between px-3 py-2 text-left text-[12.5px] text-slate-200 hover:bg-white/5"
-                >
-                  <span className="truncate">{b.name}</span>
-                  {b.id === currentBrandId && (
-                    <Check size={13} className="text-sky-400" />
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
+        {user === "ADMIN" && (
+          <div className="relative">
+            <button
+              onClick={() => setBranchListOpen((v) => !v)}
+              className="flex w-full items-center justify-between rounded-md border border-white/10 bg-[#0d0f14] px-3 py-2 text-[12.5px] text-slate-200 hover:border-white/20"
+            >
+              <span className="truncate">
+                {currentBrand?.name ?? "Select a branch"}
+              </span>
+              <ChevronDown size={13} className="shrink-0 text-slate-500" />
+            </button>
+            {branchListOpen && brands.length > 0 && (
+              <div className="absolute left-0 top-full z-30 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-white/10 bg-[#0d0f14] py-1 shadow-xl">
+                {brands.map((b) => (
+                  <button
+                    key={b.id}
+                    onClick={() => {
+                      onBrandChange?.(b.id);
+                      setBranchListOpen(false);
+                    }}
+                    className="flex w-full items-center justify-between px-3 py-2 text-left text-[12.5px] text-slate-200 hover:bg-white/5"
+                  >
+                    <span className="truncate">{b.name}</span>
+                    {b.id === currentBrandId && (
+                      <Check size={13} className="text-sky-400" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         {/* Profile / QR code */}
         <div className="space-y-0.5">
           <button className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-[13px] text-slate-200 hover:bg-white/5">
@@ -130,10 +133,20 @@ export default function Sidebar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useUserStore();
-  console.log(user?.user?.role);
+  // console.log(user?.user?.role);
+  const isAdmin = user?.user.role === "ADMIN";
+  console.log(user?.user.role);
 
-  const { data: brands } = useGroups();
-
+  const { data } = useGroups(isAdmin);
+  // console.log(data);
+  const { brands } = useBrandStore();
+  const setBrands = useBrandStore((state) => state.setBrands);
+  // console.log(brands);
+  useEffect(() => {
+    if (data) {
+      setBrands(data);
+    }
+  }, [data, setBrands]);
   // console.log(brands);
 
   const selectedBrandId = useBrandStore((s) => s.selectedBrandId);
@@ -184,20 +197,20 @@ export default function Sidebar() {
           >
             {soundOn ? <Volume2 size={15} /> : <VolumeX size={15} />}
           </button>
-          {user?.user?.role === "ADMIN" && (
-            <button
-              onClick={() => setUserMenuOpen((v) => !v)}
-              aria-label="Account menu"
-              aria-expanded={userMenuOpen}
-              className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
-                userMenuOpen
-                  ? "bg-sky-500 text-white"
-                  : "bg-white/10 text-slate-200 hover:bg-white/15"
-              }`}
-            >
-              <User size={15} />
-            </button>
-          )}
+
+          <button
+            onClick={() => setUserMenuOpen((v) => !v)}
+            aria-label="Account menu"
+            aria-expanded={userMenuOpen}
+            className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
+              userMenuOpen
+                ? "bg-sky-500 text-white"
+                : "bg-white/10 text-slate-200 hover:bg-white/15"
+            }`}
+          >
+            <User size={15} />
+          </button>
+
           <button
             aria-label="Support"
             className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-slate-200 transition hover:bg-white/15"
@@ -220,6 +233,7 @@ export default function Sidebar() {
               // brands.invalidateQueries();
             }}
             onLogout={logout}
+            user={user?.user.role!}
           />
         )}
       </div>

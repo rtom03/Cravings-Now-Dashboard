@@ -4,7 +4,6 @@ import dotenv from "dotenv";
 import express from "express";
 import morgan from "morgan";
 import { connectDB } from "./utils/db";
-import path from "path";
 import routes from "./routes";
 
 dotenv.config();
@@ -19,10 +18,9 @@ process.on("SIGINT", () => {
   console.log("Shutting down...");
   process.exit(0);
 });
-
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:3001,"],
+    origin: ["http://localhost:5173", "http://localhost:3001"],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   }),

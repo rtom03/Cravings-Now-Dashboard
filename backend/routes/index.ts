@@ -13,7 +13,7 @@ routes.use("/user", userRoute);
 routes.use("/branches", branchRoutes);
 routes.use("/products", productRoutes);
 routes.use("/categories", categoryRoutes);
-routes.use("/groups", groupRoutes);
+// routes.use("/groups", groupRoutes);
 routes.use("/admin", adminRoutes);
 routes.use("/store", storeRoutes);
 

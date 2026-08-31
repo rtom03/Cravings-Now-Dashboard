@@ -1,8 +1,8 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import Pos from "./features/pos/Pos";
 import Branches from "./features/branches/Branches";
-import HomeDashboard from "./features/home/HomeDashboard";
+// import HomeDashboard from "./features/home/HomeDashboard";
 import Home from "./features/home/HomeDashboard";
 import Products from "./features/products/Products";
 import Orders from "./features/orders/Orders";

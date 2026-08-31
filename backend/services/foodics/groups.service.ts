@@ -1,7 +1,3 @@
-import {
-  upsertGroup,
-  upsertGroupProducts,
-} from "../../controller/groupController";
 import { prisma } from "../../utils/db";
 import {
   BN_CATEGORIES,
@@ -76,23 +72,23 @@ export const getProductsFromFoodicsCF = async (categoryId: string) => {
   return allProducts;
 };
 
-export const appendCatIdGrpPrd = async () => {
-  let allProducts;
-  let count = 0;
-  for (const category of categories) {
-    const products = await getProductsFromFoodicsCF(category.foodicsId);
+// export const appendCatIdGrpPrd = async () => {
+//   let allProducts;
+//   let count = 0;
+//   for (const category of categories) {
+//     const products = await getProductsFromFoodicsCF(category.foodicsId);
 
-    const groupProducts = await prisma.groupProducts.findMany();
-    const groupProductIds = groupProducts.map((gp) => gp.foodicsId);
+//     const groupProducts = await prisma.groupProducts.findMany();
+//     const groupProductIds = groupProducts.map((gp) => gp.foodicsId);
 
-    const filteredProducts = products.filter((pr) =>
-      groupProductIds.includes(pr.id),
-    );
-    for (const product of filteredProducts) {
-      console.log(count++);
-      await upsertGroupProducts(product, category.id);
-    }
-    allProducts = filteredProducts.length;
-  }
-  return allProducts;
-};
+//     const filteredProducts = products.filter((pr) =>
+//       groupProductIds.includes(pr.id),
+//     );
+//     for (const product of filteredProducts) {
+//       console.log(count++);
+//       await upsertGroupProducts(product, category.id);
+//     }
+//     allProducts = filteredProducts.length;
+//   }
+//   return allProducts;
+// };

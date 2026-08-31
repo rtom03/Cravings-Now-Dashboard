@@ -3,11 +3,12 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Pagination } from "../../shared/Pagination";
 import { usePagination } from "../../hooks/usePagination";
 import { useHorizontalScrollProgress } from "../../shared/ScrollIndicator";
-import { Product, SortDir } from "../../shared/HeaderCell";
+import { SortDir } from "../../shared/HeaderCell";
 import { toBranchWithProducts } from "../../types/type";
 import { useBranchStore } from "../../store/branchStore";
 import { BR_PRD_COLUMNS } from "../../utils/data.index";
 import { HeaderCell } from "../../shared/TableHeaderCell";
+import { Product } from "../../types/compo.type";
 
 function Toggle({ on }: { on: boolean }) {
   return (
@@ -53,8 +54,9 @@ export default function ProductsCatalog({
   const [filters, setFilters] = useState<Record<string, string[]>>({});
   const [openFilterKey, setOpenFilterKey] = useState<string | null>(null);
 
-  const setSelected = useBranchStore((state) => state.setSelectedBranch);
+  // const setSelected = useBranchStore((state) => state.setSelectedBranch);
   const selectedBranch = useBranchStore((state) => state.selectedBranch);
+  // console.log(selectedBranch);
 
   const map = selectedBranch
     ? toBranchWithProducts(selectedBranch)

@@ -1,7 +1,12 @@
 import express from "express";
 import { authenticate, authorize } from "../../middleware/authenticate";
 import { getBranch, getBranches } from "../../controller/branchController";
-import { getGroup, getGroups } from "../../controller/groupController";
+import {
+  getBranchByGroupId,
+  getGroups,
+  getModifiersByProductId,
+  getProductByGroupId,
+} from "../../controller/groupController";
 import {
   createAdmin,
   loginAdmin,
@@ -16,6 +21,20 @@ adminRoutes.post("/sign-in", loginAdmin);
 adminRoutes.get("/branches", authenticate, authorize("ADMIN"), getBranches);
 adminRoutes.get("/branches/:id", authenticate, authorize("ADMIN"), getBranch);
 adminRoutes.get("/groups", authenticate, authorize("ADMIN"), getGroups);
-adminRoutes.get("/groups/:id", authenticate, authorize("ADMIN"), getGroup);
+adminRoutes.get(
+  "/groups/products/:id",
+  authenticate,
+  authorize("ADMIN"),
+  getProductByGroupId,
+);
+
+adminRoutes.get(
+  "/groups/branches/:id",
+  authenticate,
+  authorize("ADMIN"),
+  getBranchByGroupId,
+);
+
+adminRoutes.get("/groups/options/:id", authenticate, getModifiersByProductId);
 
 export default adminRoutes;

@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { X, Info, Globe, Grid3x3, ChevronDown } from "lucide-react";
+import { useBranchStore } from "../../store/branchStore";
+import { GroupBranch } from "../../types/type";
+import AddressTab from "./AddressTab";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -11,7 +14,7 @@ interface BranchSettingsModalProps {
 
 const TABS = [
   "General",
-  "Delivery / Pickup",
+  // "Delivery / Pickup",
   "Address",
   "Integrations",
   "Schedule Store Busy",
@@ -205,7 +208,7 @@ function GeneralTab() {
   const [requireMake, setRequireMake] = useState(false);
   const [requireColor, setRequireColor] = useState(false);
   const [requirePlate, setRequirePlate] = useState(false);
-
+  const { selectedBranch } = useBranchStore();
   return (
     <div className="space-y-6">
       <div>
@@ -242,21 +245,21 @@ function GeneralTab() {
 
       <div className="space-y-4">
         <Field label="English name">
-          <TextInput defaultValue="KRISPY KREME LEKKI" />
+          <TextInput placeholder={selectedBranch?.name} />
         </Field>
         <Field label="Arabic name">
-          <TextInput placeholder="Lekki Centro" />
+          <TextInput placeholder={selectedBranch?.name} />
         </Field>
         <Field label="Phone">
           <div className="space-y-2">
             <CountrySelect value="Nigeria +234" />
-            <TextInput defaultValue="9066851394" />
+            <TextInput placeholder={selectedBranch?.phone!} />
           </div>
         </Field>
         <Field label="Whatsapp Number">
           <div className="space-y-2">
             <CountrySelect value="Nigeria +234" />
-            <TextInput defaultValue="9066851394" />
+            <TextInput placeholder={selectedBranch?.phone!} />
           </div>
         </Field>
         <Field label="Roles">
@@ -340,6 +343,18 @@ export default function BranchSettingsModal({
   setOpen,
 }: BranchSettingsModalProps) {
   const [activeTab, setActiveTab] = useState<Tab>("General");
+  const { branches } = useBranchStore();
+  const setSelected = useBranchStore((state) => state.setSelectedBranch);
+
+  useEffect(() => {
+    if (branches) {
+      const match = branches.find((br) => br.id === id);
+      // console.log(match);
+      if (match) {
+        setSelected(match);
+      }
+    }
+  }, [branches, setSelected]);
 
   useEffect(() => {
     if (!open) return;
@@ -401,6 +416,8 @@ export default function BranchSettingsModal({
         <div className="overflow-y-auto px-5 py-5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-track]:bg-transparent">
           {activeTab === "General" ? (
             <GeneralTab />
+          ) : activeTab === "Address" ? (
+            <AddressTab />
           ) : (
             <EmptyTab tab={activeTab} />
           )}

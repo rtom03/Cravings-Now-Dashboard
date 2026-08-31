@@ -1,3 +1,60 @@
+import fs from "fs/promises";
+import path from "path";
+import { prisma } from "./db";
+
+const filePath = path.join(process.cwd(), "synced-modifier-products.jsonl");
+
+export const recordModifierProduct = async (productId: string) => {
+  console.log(`📝 Recording modifier product: ${productId}`);
+
+  const product = await prisma.groupProducts.findUnique({
+    where: {
+      foodicsId: productId,
+    },
+    select: {
+      foodicsId: true,
+      name: true,
+    },
+  });
+
+  if (!product) {
+    console.warn(
+      `Could not record modifier product. Product not found: ${productId}`,
+    );
+    return;
+  }
+
+  const record = {
+    productId: product.foodicsId,
+    productName: product.name,
+  };
+
+  await fs.appendFile(filePath, `${JSON.stringify(record)}\n`, "utf8");
+};
+
+export const getSyncedModifierProductIds = async () => {
+  try {
+    const content = await fs.readFile(filePath, "utf8");
+
+    return new Set(
+      content
+        .split("\n")
+        .filter(Boolean)
+        .map((line) => {
+          const record = JSON.parse(line);
+
+          return record.productId;
+        }),
+    );
+  } catch (error: any) {
+    if (error.code === "ENOENT") {
+      return new Set<string>();
+    }
+
+    throw error;
+  }
+};
+
 const KRISPY_KREME_CATEGORIES = [
   "KREME DEALS",
   "FATHER'S DAY DOUGHNUT",

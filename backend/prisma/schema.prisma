@@ -33,27 +33,8 @@ model User {
   @@index([branchId])
 }
 
-// model Brand {
-//   id         String          @id @default(uuid())
-//   name       String
-//   categories BrandCategory[]
-//   branches   Branch[]
-// }
-
-// model BrandCategory {
-//   id String @id @default(uuid())
-
-//   brandId    String
-//   categoryId String
-
-//   brand    Brand    @relation(fields: [brandId], references: [id])
-//   category Category @relation(fields: [categoryId], references: [id])
-
-//   @@unique([brandId, categoryId])
-// }
-
 model Branch {
-  id                    String  @id @default(uuid())
+  id                    String  @id @unique @default(uuid())
   foodicsId             String  @unique @map("foodics_id")
   nameLocalized         String? @map("name_localized")
   reference             String? @unique @map("reference")
@@ -152,7 +133,6 @@ model Product {
   discounts   Discount[]   @relation("ProductDiscounts")
   timedEvents TimedEvent[] @relation("ProductTimedEvents")
   groups      MenuGroup[]  @relation("ProductMenuGroups")
-  modifiers   Modifier[]   @relation("ModifierProducts") // inverse of Modifier.products
 
   branches    ProductBranch[]
   ingredients ProductIngredient[]
@@ -252,7 +232,7 @@ model ProductIngredient {
 }
 
 model Group {
-  id            String          @id @default(uuid())
+  id            String          @id @unique @default(uuid())
   foodicsId     String          @unique
   name          String
   nameLocalized String?
@@ -261,34 +241,35 @@ model Group {
 }
 
 model GroupProducts {
-  id                           String    @id @default(uuid())
-  foodicsId                    String    @unique
+  id                           String                 @id @default(uuid())
+  foodicsId                    String                 @unique
   sku                          String
   group_name                   String?
   barcode                      String?
   name                         String
-  nameLocalized                String?   @map("name_localized")
+  nameLocalized                String?                @map("name_localized")
   description                  String?
-  descriptionLocalized         String?   @map("description_localized")
+  descriptionLocalized         String?                @map("description_localized")
   image                        String?
-  isActive                     Boolean?  @default(true) @map("is_active")
-  isStockProduct               Boolean?  @default(false) @map("is_stock_product")
-  isNonRevenue                 Boolean?  @default(false) @map("is_non_revenue")
-  isReady                      Boolean?  @default(false) @map("is_ready")
-  pricingMethod                Int       @map("pricing_method") // 1 = Pre Set, 2 = Open Price
-  sellingMethod                Int       @map("selling_method") // 1 = Unit, 2 = Weight
-  costingMethod                Int       @map("costing_method") // 1 = Fixed, 2 = From Ingredients
-  preparationTime              Int?      @map("preparation_time")
+  isActive                     Boolean?               @default(true) @map("is_active")
+  isStockProduct               Boolean?               @default(false) @map("is_stock_product")
+  isNonRevenue                 Boolean?               @default(false) @map("is_non_revenue")
+  isReady                      Boolean?               @default(false) @map("is_ready")
+  pricingMethod                Int                    @map("pricing_method") // 1 = Pre Set, 2 = Open Price
+  sellingMethod                Int                    @map("selling_method") // 1 = Unit, 2 = Weight
+  costingMethod                Int                    @map("costing_method") // 1 = Fixed, 2 = From Ingredients
+  preparationTime              Int?                   @map("preparation_time")
   price                        Float?
   cost                         Float?
   calories                     Int?
-  walkingMinutesToBurnCalories Int?      @map("walking_minutes_to_burn_calories")
-  isHighSalt                   Boolean?  @map("is_high_salt")
+  walkingMinutesToBurnCalories Int?                   @map("walking_minutes_to_burn_calories")
+  isHighSalt                   Boolean?               @map("is_high_salt")
   pivot                        Json?
   groupId                      String?
-  group                        Group?    @relation(fields: [groupId], references: [id])
-  categoryId                   String?   @map("category_id")
-  category                     Category? @relation(fields: [categoryId], references: [id])
+  group                        Group?                 @relation(fields: [groupId], references: [id])
+  categoryId                   String?                @map("category_id")
+  category                     Category?              @relation(fields: [categoryId], references: [id])
+  groupProductModifiers        GroupProductModifier[]
 }
 
 model Modifier {
@@ -296,26 +277,21 @@ model Modifier {
   foodicsId String @unique
 
   name          String
-  nameLocalized String? @map("name_localized")
-  isReady       Boolean @default(false) @map("is_ready")
-  reference     String  @unique
+  nameLocalized String?
+  reference     String?
+  isReady       Boolean?
 
-  // --- Relations ---
+  createdAt DateTime?
+  updatedAt DateTime?
+  deletedAt DateTime?
 
-  products Product[]        @relation("ModifierProducts")
-  options  ModifierOption[] // inverse of ModifierOption.modifier (one-to-many)
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  @@map("modifiers")
+  options  ModifierOptionModifier[]
+  products GroupProductModifier[]
 }
 
 model ModifierOption {
-  id        String @id @default(uuid())
-  foodicsId String @unique
-
+  id            String  @id @default(uuid())
+  foodicsId     String  @unique
   sku           String  @unique
   name          String
   nameLocalized String? @map("name_localized")
@@ -329,46 +305,72 @@ model ModifierOption {
 
   // --- Relations ---
 
-  modifierId String   @map("modifier_id")
-  modifier   Modifier @relation(fields: [modifierId], references: [id])
-
-  taxGroupId String?   @map("tax_group_id")
-  taxGroup   TaxGroup? @relation(fields: [taxGroupId], references: [id])
-
-  branch                  ModifierOptionBranch[]
-  ingredients             ModifierOptionIngredient[]
-  orderProductionOption   OrderProductOption?
-  orderComboProductOption OrderComboProductOption?
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  taxGroupId                String?                    @map("tax_group_id")
+  taxGroup                  TaxGroup?                  @relation(fields: [taxGroupId], references: [id])
+  createdAt                 DateTime                   @default(now()) @map("created_at")
+  updatedAt                 DateTime                   @updatedAt @map("updated_at")
+  deletedAt                 DateTime?                  @map("deleted_at")
+  orderProductOption        OrderProductOption?
+  orderComboProductOption   OrderComboProductOption?
+  modifiers                 ModifierOptionModifier[]
+  branches                  ModifierOptionBranch[]
+  modifierOptionIngredients ModifierOptionIngredient[]
 
   @@map("modifier_options")
 }
 
+model ModifierOptionBranch {
+  modifierOptionId String
+  branchId         String
+
+  price     Float?
+  isActive  Boolean
+  isInStock Boolean
+
+  modifierOption ModifierOption @relation(fields: [modifierOptionId], references: [id], onDelete: Cascade)
+
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@id([modifierOptionId, branchId])
+}
+
+model ModifierOptionModifier {
+  modifierId       String
+  modifierOptionId String
+
+  modifier       Modifier       @relation(fields: [modifierId], references: [id], onDelete: Cascade)
+  modifierOption ModifierOption @relation(fields: [modifierOptionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([modifierId, modifierOptionId])
+}
+
+///the relationship between products and it modifier[]
+model GroupProductModifier {
+  groupProductId String
+  modifierId     String
+
+  isSplittableInHalf Boolean?
+  uniqueOptions      Boolean?
+  minimumOptions     Int?
+  maximumOptions     Int?
+  freeOptions        Int?
+
+  defaultOptionsIds  Json?
+  excludedOptionsIds Json?
+
+  index Int?
+
+  groupProduct GroupProducts @relation(fields: [groupProductId], references: [id], onDelete: Cascade)
+
+  modifier Modifier @relation(fields: [modifierId], references: [id], onDelete: Cascade)
+
+  @@id([groupProductId, modifierId])
+}
+
 // Pivot model for branches, since a modifier option can have
 // custom attributes (e.g. price/cost override) per branch
-model ModifierOptionBranch {
-  id String @id @default(uuid())
-
-  modifierOptionId String         @map("modifier_option_id")
-  modifierOption   ModifierOption @relation(fields: [modifierOptionId], references: [id])
-
-  branchId String
-  branch   Branch @relation(fields: [branchId], references: [id])
-
-  // Custom per-branch overrides
-  price     Float?
-  isActive  Boolean? @map("is_active")
-  isInStock Boolean? @map("is_in_stock")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@unique([modifierOptionId, branchId])
-  @@map("modifier_option_branches")
-}
 
 // Pivot model for ingredients (inventory items), typically
 // carrying a quantity/unit used per modifier option
