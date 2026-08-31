@@ -3,7 +3,7 @@ import { Branches, Groups } from "../types/type";
 import {
   getBranchByGroupId,
   getGroups,
-  getProductByGroupId,
+  getProductsByGroupId,
 } from "../services/apiServices";
 
 export const useGroups = (enabled = true) => {
@@ -33,7 +33,7 @@ export const useProductsByGroupById = (id: string, enabled = true) => {
   return useQuery({
     queryKey: ["products", id],
     queryFn: async () => {
-      const res = await getProductByGroupId(id);
+      const res = await getProductsByGroupId(id);
       // console.log(res);
       return res.products; // unwrap the { branches: [...] } envelope
     },

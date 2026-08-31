@@ -1,24 +1,22 @@
 import { Request, Response } from "express";
 import { prisma } from "../utils/db";
 import { FoodicsProductRaw } from "../types/index.types";
-import {
-  syncProducts,
-  // syncProductsWCatFilter,
-} from "../services/foodics/product.service";
+import {} from // syncProductsWCatFilter,
+"../services/foodics/product.service";
 import { syncAllProductModifiers } from "../services/foodics/modifier.service";
 
-export const syncProdFd = async (req: Request, res: Response) => {
-  try {
-    console.log("Upsertting");
-    // const products = await syncProductsWCatFilter();
+// export const syncProdFd = async (req: Request, res: Response) => {
+//   try {
+//     console.log("Upsertting");
+//     // const products = await syncProductsWCatFilter();
 
-    const products = await syncProducts();
-    console.log("Done");
-    return res.json({ products });
-  } catch (error) {
-    console.log(error);
-  }
-};
+//     const products = await syncProducts();
+//     console.log("Done");
+//     return res.json({ products });
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };
 
 // syncAllProductModifiers();
 

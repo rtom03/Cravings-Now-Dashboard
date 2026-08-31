@@ -48,29 +48,29 @@ const categories = await prisma.category.findMany({
   },
 });
 
-export const getProductsFromFoodicsCF = async (categoryId: string) => {
-  const { data: firstPage } = await foodicsClient.get(
-    `/products?filter[category_id]=${categoryId}&page=1`,
-  );
+// export const getProductsFromFoodicsCF = async (categoryId: string) => {
+//   const { data: firstPage } = await foodicsClient.get(
+//     `/products?filter[category_id]=${categoryId}&page=1`,
+//   );
 
-  const allProducts = [...firstPage.data];
+//   const allProducts = [...firstPage.data];
 
-  const lastPage = firstPage.meta.last_page;
+//   const lastPage = firstPage.meta.last_page;
 
-  for (let page = 2; page <= lastPage; page++) {
-    console.log(`Fetching page ${page}`);
+//   for (let page = 2; page <= lastPage; page++) {
+//     console.log(`Fetching page ${page}`);
 
-    const { data } = await foodicsClient.get(
-      `/products?filter[category_id]=${categoryId}&page=${page}`,
-    );
+//     const { data } = await foodicsClient.get(
+//       `/products?filter[category_id]=${categoryId}&page=${page}`,
+//     );
 
-    allProducts.push(...data.data);
-  }
+//     allProducts.push(...data.data);
+//   }
 
-  // console.log(allProducts.length);
+//   // console.log(allProducts.length);
 
-  return allProducts;
-};
+//   return allProducts;
+// };
 
 // export const appendCatIdGrpPrd = async () => {
 //   let allProducts;

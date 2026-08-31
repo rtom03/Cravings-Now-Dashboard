@@ -96,16 +96,16 @@ export const updateProduct = async (productId: string, payload: unknown) => {
   return data;
 };
 
-export const syncProducts = async () => {
-  const products = await getProductsFromFoodics();
-  // console.log(products);
-  for (const product of products) {
-    // YOU assign it
-    await upsertProducts(product);
-    // await upsertProductBranches(savedProduct.id, product.branches);
-  }
+// export const syncProducts = async () => {
+//   const products = await getProductsFromFoodics();
+//   // console.log(products);
+//   for (const product of products) {
+//     // YOU assign it
+//     await upsertProducts(product);
+//     // await upsertProductBranches(savedProduct.id, product.branches);
+//   }
 
-  return products.length;
-};
+//   return products.length;
+// };
 
 // getProductsFromFoodics();

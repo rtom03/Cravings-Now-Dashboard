@@ -28,6 +28,7 @@ import { useBranch } from "../../api/branchQuery";
 import ProductsCatalog from "./ProductsCatalog";
 import WorkingHoursTab from "./WorkingHoursTab";
 import DeliveryAreasTab from "./Deliveryareatab";
+import BranchDetailsModal from "./branchdetailsModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -70,27 +71,6 @@ const CLOSED_SETTINGS_MODAL: SettingsModalState = { id: "", open: false };
 const CLOSED_DELETE_MODAL: DeleteModalState = { id: "", open: false };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
-// const Badge = ({
-//   label,
-//   variant,
-// }: {
-//   label: string;
-//   variant: "green" | "blue" | "red";
-// }) => {
-//   const styles = {
-//     green: "bg-green-50 text-green-800",
-//     blue: "bg-blue-50 text-blue-800",
-//     red: "bg-red-50 text-red-700",
-//   };
-//   return (
-//     <span
-//       className={`text-[10px] font-medium px-1.5 py-0.5 rounded-[3px] ${styles[variant]}`}
-//     >
-//       {label}
-//     </span>
-//   );
-// };
 
 // ─── Custom Store Icon ──────────────────────────────────────────────────────
 
@@ -448,11 +428,16 @@ export default function Branches() {
         onDelete={(id) => setDeleteModal({ id, open: true })}
       />
       {menuModal.open === true && (
-        <MenuModal
-          id={menuModal.id}
+        // <MenuModal
+        //   id={menuModal.id}
+        //   open={menuModal.open}
+        //   setOpen={() => setMenuModal((prev) => ({ ...prev, open: false }))}
+        //   tabs={TABS!}
+        // />
+        <BranchDetailsModal
+          branchId={menuModal.id}
           open={menuModal.open}
           setOpen={() => setMenuModal((prev) => ({ ...prev, open: false }))}
-          tabs={TABS!}
         />
       )}
       {settingsModal.open && (

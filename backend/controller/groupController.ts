@@ -64,10 +64,7 @@ const getProductByGroupId = async (req: Request<IDParams>, res: Response) => {
   }
 };
 
-const getModifiersByProductId = async (
-  req: Request<IDParams>,
-  res: Response,
-) => {
+const getProductDetails = async (req: Request<IDParams>, res: Response) => {
   const { id } = req.params;
   try {
     const productOption = await prisma.groupProducts.findUnique({
@@ -86,7 +83,7 @@ const getModifiersByProductId = async (
         },
       },
     });
-    res.status(201).json({ productOption });
+    res.status(201).json(productOption);
   } catch (error) {
     console.log(error);
     res.status(500).json(`An err occured while fetching data ${error}`);
@@ -96,5 +93,5 @@ export {
   getGroups,
   getBranchByGroupId,
   getProductByGroupId,
-  getModifiersByProductId,
+  getProductDetails,
 };

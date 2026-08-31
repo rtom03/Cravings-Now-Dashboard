@@ -20,6 +20,7 @@ import { useProductsByGroupById } from "../../api/groupQuery";
 import { useBrandStore } from "../../store/brandStore";
 import MenuModal from "../branches/MenuModal";
 import Options from "./Options";
+import ProductDetailsModal from "./ProductDetailsModal";
 
 const Products = () => {
   const SUB_TABS = [
@@ -459,7 +460,11 @@ const Products = () => {
               query ? `No products match "${query}".` : "No products found."
             }
           />
-          <MenuModal id={productId} open={open} tabs={TABS} setOpen={setOpen} />
+          <ProductDetailsModal
+            productId={productId!}
+            open={open}
+            setOpen={setOpen}
+          />
         </div>
       ) : subTab === "Categories" ? (
         <CategoryTable

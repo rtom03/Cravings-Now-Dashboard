@@ -1,6 +1,12 @@
 import { LoginResponse, UserLoginProps } from "../constants/index.type";
 import { useUserStore } from "../store/userStore";
-import { Branches, BranchDetails, Groups, BrandProducts } from "../types/type";
+import {
+  Branches,
+  BranchDetails,
+  Groups,
+  BrandProducts,
+  GroupProductDeatil,
+} from "../types/type";
 import { isTokenValid } from "../utils/token";
 
 export const BASE_URL = "http://localhost:8000/api";
@@ -148,9 +154,17 @@ const getBranchByGroupId = async (id: string): Promise<Branches> => {
   }
 };
 
-const getProductByGroupId = async (id: string): Promise<BrandProducts> => {
+const getProductsByGroupId = async (id: string): Promise<BrandProducts> => {
   try {
     return await apiFetch(`/admin/groups/products/${id}`); // ← await added
+  } catch (error: any) {
+    throw new Error(error?.message || "Something went wrong");
+  }
+};
+
+const getProductDetails = async (id: string): Promise<GroupProductDeatil> => {
+  try {
+    return await apiFetch(`/admin/groups/product-details/${id}`);
   } catch (error: any) {
     throw new Error(error?.message || "Something went wrong");
   }
@@ -163,7 +177,8 @@ export {
   getProducts,
   getGroups,
   getBranchByGroupId,
-  getProductByGroupId,
+  getProductsByGroupId,
+  getProductDetails,
   adminCreateAuth,
   adminLoginAuth,
 };

@@ -69,7 +69,7 @@ function SkeletonCell({ variant }: { variant: CellVariant }) {
 // ─── Table skeleton ─────────────────────────────────────────────────────────
 
 interface CatalogTableSkeletonProps {
-  columns: SkeletonColumn[];
+  columns?: SkeletonColumn[];
   rows?: number;
   /** Render the real (static) header labels above the shimmering body, so
    * layout doesn't shift once real data replaces the skeleton. */
@@ -87,7 +87,7 @@ export function CatalogTableSkeleton({
         {showHeader && (
           <thead>
             <tr>
-              {columns.map((col) => (
+              {columns?.map((col) => (
                 <th
                   key={col.key}
                   style={{ minWidth: col.width }}
@@ -109,7 +109,7 @@ export function CatalogTableSkeleton({
                 rowIndex % 2 === 1 ? "bg-white/[0.015]" : ""
               }`}
             >
-              {columns.map((col) => (
+              {columns?.map((col) => (
                 <td key={col.key} className="px-3 py-3">
                   <div
                     className="flex items-center"

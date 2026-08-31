@@ -4,8 +4,8 @@ import { getBranch, getBranches } from "../../controller/branchController";
 import {
   getBranchByGroupId,
   getGroups,
-  getModifiersByProductId,
   getProductByGroupId,
+  getProductDetails,
 } from "../../controller/groupController";
 import {
   createAdmin,
@@ -35,6 +35,6 @@ adminRoutes.get(
   getBranchByGroupId,
 );
 
-adminRoutes.get("/groups/options/:id", authenticate, getModifiersByProductId);
+adminRoutes.get("/groups/product-details/:id", authenticate, getProductDetails);
 
 export default adminRoutes;

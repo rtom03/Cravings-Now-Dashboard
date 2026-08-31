@@ -56,24 +56,31 @@ export default function ProductsCatalog({
 
   // const setSelected = useBranchStore((state) => state.setSelectedBranch);
   const selectedBranch = useBranchStore((state) => state.selectedBranch);
+
   // console.log(selectedBranch);
 
-  const map = selectedBranch
-    ? toBranchWithProducts(selectedBranch)
-    : { products: [] as Product[] };
+  const products = useMemo(() => {
+    if (!selectedBranch) return [];
+
+    return toBranchWithProducts(selectedBranch).products;
+  }, [selectedBranch]);
+
+  // const map = selectedBranch
+  //   ? toBranchWithProducts(selectedBranch!)
+  //   : { products: [] as Product[] };
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
 
     let r: Product[] = q
-      ? map.products.filter((row) => {
+      ? products.filter((row) => {
           return (
             row.name.toLowerCase().includes(q) ||
             (row.nameLocalized ?? "").toLowerCase().includes(q) ||
             row.category.name.toLowerCase().includes(q)
           );
         })
-      : map.products;
+      : products;
 
     for (const col of BR_PRD_COLUMNS) {
       const activeValues = filters[col.key];
@@ -99,10 +106,10 @@ export default function ProductsCatalog({
 
     return r;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, sort, filters, map.products]);
+  }, [query, sort, filters, products]);
 
   const { page, setPage, pageSize, setPageSize, totalPages, paginated } =
-    usePagination(rows, 10);
+    usePagination(rows ?? [], 10);
 
   const handleSort = (key: string) => {
     setSort((prev) =>
@@ -187,7 +194,7 @@ export default function ProductsCatalog({
                   onSort={handleSort}
                   style={{ minWidth: col.width }}
                   filterOptions={
-                    col.filterOptions ? col.filterOptions(map.products) : []
+                    col.filterOptions ? col.filterOptions(products ?? []) : []
                   }
                   activeFilter={filters[col.key] ?? []}
                   isFilterOpen={openFilterKey === col.key}
@@ -294,7 +301,7 @@ export default function ProductsCatalog({
                 </td>
               </tr>
             ))}
-            {rows.length === 0 && (
+            {rows?.length === 0 && (
               <tr>
                 <td
                   colSpan={BR_PRD_COLUMNS.length}

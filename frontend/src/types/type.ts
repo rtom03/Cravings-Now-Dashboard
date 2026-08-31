@@ -97,11 +97,12 @@ interface BrandProducts {
 }
 
 interface GroupProducts extends Product {
-  pivot: { is_active: boolean };
-  group_name: string;
   groupProductModifiers: GroupProductModifiers;
 }
 
+interface GroupProductDeatil extends Product {
+  groupProductModifiers: GroupProductModifiers;
+}
 interface Options {
   modifierId: string;
   modifierOptionId: string;
@@ -140,8 +141,8 @@ interface GroupProductModifiers {
     nameLocalized: string | null;
     reference: string;
     isReady: boolean;
+    options: Options[];
   };
-  options: Options[];
 }
 // ─── Mapper ─────────────────────────────────────────────────────────────────
 
@@ -171,7 +172,7 @@ interface Groups {
 function toBranchWithProducts(branch: BranchDetails): BranchWithProducts {
   const { branchCategories, ...branchFields } = branch;
 
-  const products = branchCategories.flatMap((bc) => {
+  const products = branchCategories?.flatMap((bc) => {
     const { groupProducts: categoryProducts, ...categorySummary } = bc.category;
     return categoryProducts.map((product) => ({
       ...product,
@@ -222,6 +223,7 @@ export {
   BranchDetails,
   ProductWithCategory,
   BrandProducts,
+  GroupProductDeatil,
   toBranchWithProducts,
   getAllGroupProducts,
 };

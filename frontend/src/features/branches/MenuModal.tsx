@@ -1,7 +1,8 @@
 import { ReactNode, useEffect, useState } from "react";
 import { X, MapPin, LucideIcon, LucideProps } from "lucide-react";
-import { useBranch } from "../../api/branchQuery";
 import { useBranchStore } from "../../store/branchStore";
+import { useBranch } from "../../api/branchQuery";
+import { MenuModalSkeleton } from "../../ui/ModalSkeleton";
 
 // ---------------------------------------------------------------------------
 // Local shape of a catalog row, inferred from how it's used below
@@ -36,7 +37,6 @@ export default function MenuModal<TKey extends string>({
 }: ModalProps<TKey>) {
   const setSelected = useBranchStore((state) => state.setSelectedBranch);
   const selectedBranch = useBranchStore((state) => state.selectedBranch);
-  const { data: branch, isPending } = useBranch(id!);
   // console.log(id);
   // console.log(selectedBranch);
 
@@ -45,17 +45,34 @@ export default function MenuModal<TKey extends string>({
   // populated by the effect below once `branch` has loaded. Falls back to
   // an empty product list so hooks below always have a stable value to
   // work with regardless of load order.
-
+  // console.log("MenuModal rendered", {
+  //   id,
+  //   open,
+  // });
+  const { data: branch, isPending, isError, error } = useBranch(id!);
+  // console.log("Branch query", {
+  //   id,
+  //   branch,
+  //   isPending,
+  //   isError,
+  //   error,
+  // });
   useEffect(() => {
     if (branch) {
-      setSelected(branch!);
+      setSelected(branch);
+      // console.log("Branch:", branch);
+      // console.log("ID:", id);
     }
-  }, [branch, setSelected]);
+  }, [branch, id, setSelected]);
 
   const [activeTab, setActiveTab] = useState<TKey>(tabs[0].key);
   // const scrollRatio = useHorizontalScrollProgress(tableScrollRef);
 
   if (!open) return null;
+
+  if (isPending) {
+    return <MenuModalSkeleton />;
+  }
   const activeTabContent = tabs.find((tab) => tab.key === activeTab)?.content;
   return (
     // <div className="fixed  inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 font-sans max-h-[120vh]  overflow-y-auto overflow-x-hidden ">

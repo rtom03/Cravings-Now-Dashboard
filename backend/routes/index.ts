@@ -1,7 +1,6 @@
 import express from "express";
 import userRoute from "./userRoutes";
 import branchRoutes from "./branchRoutes";
-import productRoutes from "./productRoutes";
 import categoryRoutes from "./categoryRoute";
 import groupRoutes from "./groupRoutes";
 import adminRoutes from "./admin/route";
@@ -11,7 +10,6 @@ const routes = express.Router();
 
 routes.use("/user", userRoute);
 routes.use("/branches", branchRoutes);
-routes.use("/products", productRoutes);
 routes.use("/categories", categoryRoutes);
 // routes.use("/groups", groupRoutes);
 routes.use("/admin", adminRoutes);
