@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { prisma } from "../utils/db";
 import { IDParams } from "./branchController";
+// import { syncAllProductModifiers } from "../services/foodics/modifier.service";
+// import { syncBranches } from "../services/foodics/branches.service";
 
 const getGroups = async (req: Request, res: Response) => {
   try {
@@ -12,7 +14,7 @@ const getGroups = async (req: Request, res: Response) => {
   }
 };
 
-const getBranchByGroupId = async (req: Request<IDParams>, res: Response) => {
+const getBranchByGroupName = async (req: Request<IDParams>, res: Response) => {
   const { id } = req.params;
   try {
     const group = await prisma.group.findUnique({ where: { id: id } });
@@ -37,7 +39,10 @@ const getBranchByGroupId = async (req: Request<IDParams>, res: Response) => {
   }
 };
 
-const getProductByGroupId = async (req: Request<IDParams>, res: Response) => {
+const getProductsByGroupName = async (
+  req: Request<IDParams>,
+  res: Response,
+) => {
   const { id } = req.params;
   try {
     const group = await prisma.group.findUnique({ where: { id: id } });
@@ -64,34 +69,6 @@ const getProductByGroupId = async (req: Request<IDParams>, res: Response) => {
   }
 };
 
-const getProductDetails = async (req: Request<IDParams>, res: Response) => {
-  const { id } = req.params;
-  try {
-    const productOption = await prisma.groupProducts.findUnique({
-      where: { id: id },
-      include: {
-        groupProductModifiers: {
-          include: {
-            modifier: {
-              include: {
-                options: {
-                  include: { modifierOption: { include: { branches: true } } },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-    res.status(201).json(productOption);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json(`An err occured while fetching data ${error}`);
-  }
-};
-export {
-  getGroups,
-  getBranchByGroupId,
-  getProductByGroupId,
-  getProductDetails,
-};
+// syncAllProductModifiers();
+// syncBranches();
+export { getGroups, getBranchByGroupName, getProductsByGroupName };

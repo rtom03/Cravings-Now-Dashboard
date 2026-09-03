@@ -9,6 +9,9 @@ import Options from "./Options";
 import ItemsTab from "./ItemsTab";
 import ConfirmationMessageTab from "./ConfirmationMessageTab";
 import SeoTab from "./SeoTab";
+import ProductOptionsTab from "./Options";
+import Availability from "./Availability";
+import Branches from "./Branches";
 
 type ProductTabKey =
   | "items"
@@ -37,22 +40,30 @@ const ProductDetailsModal = ({
     {
       key: "items",
       label: "Item",
-      content: <ItemsTab productName={productDetails?.name} />,
+      content: <ItemsTab itemDetails={productDetails!} />,
     },
-    {
-      key: "settings",
-      label: "Settings",
-      content: <Options />,
-    },
+    // {
+    //   key: "settings",
+    //   label: "Settings",
+    //   content: (
+    //     <ProductOptionsTab
+    //       groupProductModifiers={productDetails?.groupProductModifiers!}
+    //     />
+    //   ),
+    // },
     {
       key: "availability",
       label: "Availability",
-      content: <Options />,
+      content: <Availability />,
     },
     {
       key: "options",
       label: "Options",
-      content: <Options />,
+      content: (
+        <ProductOptionsTab
+          groupProductModifiers={productDetails?.groupProductModifiers!}
+        />
+      ),
     },
     {
       key: "confirm",
@@ -67,7 +78,7 @@ const ProductDetailsModal = ({
     {
       key: "branches",
       label: "Branches",
-      content: <Options />,
+      content: <Branches />,
     },
   ] as const satisfies ModalTabProps<ProductTabKey>[];
   return (

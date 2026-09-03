@@ -5,7 +5,8 @@ import {
   BranchDetails,
   Groups,
   BrandProducts,
-  GroupProductDeatil,
+  GroupProductDetail,
+  Options,
 } from "../types/type";
 import { isTokenValid } from "../utils/token";
 
@@ -138,6 +139,8 @@ const adminLoginAuth = async (data: UserLoginProps): Promise<LoginResponse> => {
   }
 };
 
+///GROUPS
+
 const getGroups = async (): Promise<Groups[]> => {
   try {
     return apiFetch("/admin/groups");
@@ -154,6 +157,7 @@ const getBranchByGroupId = async (id: string): Promise<Branches> => {
   }
 };
 
+///PRODUCTS
 const getProductsByGroupId = async (id: string): Promise<BrandProducts> => {
   try {
     return await apiFetch(`/admin/groups/products/${id}`); // ← await added
@@ -162,12 +166,24 @@ const getProductsByGroupId = async (id: string): Promise<BrandProducts> => {
   }
 };
 
-const getProductDetails = async (id: string): Promise<GroupProductDeatil> => {
+const getProductDetails = async (id: string): Promise<GroupProductDetail> => {
   try {
-    return await apiFetch(`/admin/groups/product-details/${id}`);
+    return await apiFetch(`/products/product-details/${id}`);
   } catch (error: any) {
     throw new Error(error?.message || "Something went wrong");
   }
+};
+const updateModifierOption = async (
+  id: string,
+  data: Partial<Options["modifierOption"]>,
+): Promise<Partial<Options["modifierOption"]>> => {
+  return apiFetch(`/products/modifier-options/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
 };
 
 export {
@@ -179,6 +195,7 @@ export {
   getBranchByGroupId,
   getProductsByGroupId,
   getProductDetails,
+  updateModifierOption,
   adminCreateAuth,
   adminLoginAuth,
 };

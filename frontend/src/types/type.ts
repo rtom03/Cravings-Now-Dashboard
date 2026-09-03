@@ -100,29 +100,6 @@ interface GroupProducts extends Product {
   groupProductModifiers: GroupProductModifiers;
 }
 
-interface GroupProductDeatil extends Product {
-  groupProductModifiers: GroupProductModifiers;
-}
-interface Options {
-  modifierId: string;
-  modifierOptionId: string;
-  modifierOption: {
-    id: string;
-    foodicsId: string;
-    sku: string;
-    name: string;
-    nameLocalized: string | null;
-    isActive: boolean;
-    isInStock: boolean;
-    costingMethod: number;
-    price: number;
-    cost: number | null;
-    calories: string | null;
-    index: number | null;
-    taxGroupId: string | null;
-  };
-}
-
 interface GroupProductModifiers {
   groupProductId: string;
   modifierId: string;
@@ -144,6 +121,30 @@ interface GroupProductModifiers {
     options: Options[];
   };
 }
+interface GroupProductDetail extends Product {
+  groupProductModifiers: GroupProductModifiers[];
+}
+interface Options {
+  modifierId: string;
+  modifierOptionId: string;
+  modifierOption: {
+    id: string;
+    foodicsId: string;
+    sku: string;
+    name: string;
+    image?: string;
+    nameLocalized: string | null;
+    isActive: boolean;
+    isInStock: boolean;
+    costingMethod: number;
+    price: number;
+    cost: number | null;
+    calories: string | null;
+    index: number | null;
+    taxGroupId: string | null;
+  };
+}
+
 // ─── Mapper ─────────────────────────────────────────────────────────────────
 
 // ─── Target shape (what most UI/consumers actually want) ───────────────────
@@ -223,7 +224,9 @@ export {
   BranchDetails,
   ProductWithCategory,
   BrandProducts,
-  GroupProductDeatil,
+  Options,
+  GroupProductDetail,
+  GroupProductModifiers,
   toBranchWithProducts,
   getAllGroupProducts,
 };

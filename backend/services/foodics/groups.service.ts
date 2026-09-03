@@ -28,10 +28,10 @@ export const syncGroupProducts = async (id: string) => {
   return groups.length;
 };
 
-export const syncGroup = async (id: string) => {
-  const group = await getGroupsById(id);
-  await upsertGroup(group);
-};
+// export const syncGroup = async (id: string) => {
+//   const group = await getGroupsById(id);
+//   await upsertGroup(group);
+// };
 
 //// ARTIFICIAL SYNCING
 

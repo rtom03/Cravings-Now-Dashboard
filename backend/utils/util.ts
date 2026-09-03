@@ -32,20 +32,52 @@ export const recordModifierProduct = async (productId: string) => {
   await fs.appendFile(filePath, `${JSON.stringify(record)}\n`, "utf8");
 };
 
+// export const getSyncedModifierProductIds = async () => {
+//   try {
+//     const content = await fs.readFile(filePath, "utf8");
+
+//     return new Set(
+//       content
+//         .split("\n")
+//         .filter(Boolean)
+//         .map((line) => {
+//           const record = JSON.parse(line);
+
+//           return record.productId;
+//         }),
+//     );
+//   } catch (error: any) {
+//     if (error.code === "ENOENT") {
+//       return new Set<string>();
+//     }
+
+//     throw error;
+//   }
+// };
+
 export const getSyncedModifierProductIds = async () => {
   try {
     const content = await fs.readFile(filePath, "utf8");
 
-    return new Set(
-      content
-        .split("\n")
-        .filter(Boolean)
-        .map((line) => {
-          const record = JSON.parse(line);
+    const syncedIds = new Set<string>();
 
-          return record.productId;
-        }),
-    );
+    for (const line of content.split(/\r?\n/)) {
+      const trimmedLine = line.trim();
+
+      if (!trimmedLine) continue;
+
+      try {
+        const record = JSON.parse(trimmedLine);
+
+        if (record.productId) {
+          syncedIds.add(record.productId);
+        }
+      } catch (error) {
+        console.warn("Skipping invalid JSONL line:", trimmedLine);
+      }
+    }
+
+    return syncedIds;
   } catch (error: any) {
     if (error.code === "ENOENT") {
       return new Set<string>();
@@ -54,7 +86,6 @@ export const getSyncedModifierProductIds = async () => {
     throw error;
   }
 };
-
 const KRISPY_KREME_CATEGORIES = [
   "KREME DEALS",
   "FATHER'S DAY DOUGHNUT",

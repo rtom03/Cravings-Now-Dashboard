@@ -294,6 +294,7 @@ model ModifierOption {
   foodicsId     String  @unique
   sku           String  @unique
   name          String
+  image         String?
   nameLocalized String? @map("name_localized")
   isActive      Boolean @default(true) @map("is_active")
   isInStock     Boolean @default(true) @map("is_in_stock")

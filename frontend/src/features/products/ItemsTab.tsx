@@ -1,5 +1,8 @@
 import { useRef, useState } from "react";
 import { Upload, ChevronDown, RefreshCw } from "lucide-react";
+import { GroupProductDetail } from "../../types/type";
+import TextInput from "../../shared/TextInput";
+import MainImageUpload from "../../shared/MainImageUpload";
 
 // ─── Shared form primitives (same conventions as AddressTab/GeneralTab) ────
 
@@ -15,15 +18,6 @@ function Field({
       <label className="text-[13px] text-slate-300">{label}</label>
       {children}
     </div>
-  );
-}
-
-function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      {...props}
-      className="w-full rounded-md border border-white/10 bg-[#12151b] px-3 py-2.5 text-[13px] text-slate-200 placeholder:text-slate-500 focus:border-sky-500/60 focus:outline-none"
-    />
   );
 }
 
@@ -49,107 +43,7 @@ function Dropdown({
 
 // ─── Reference data — taken directly from the screenshots ──────────────────
 
-interface ProductDetailsForm {
-  productType: string;
-  mainCategory: string;
-  otherCategories: string;
-  price: string;
-  discountedFrom: string;
-  barcode: string;
-  baseUnit: string;
-  supplier: string;
-  cost: string;
-  sku: string;
-  assignedSection: string;
-}
-
-const INITIAL_FORM: ProductDetailsForm = {
-  productType: "Produced",
-  mainCategory: "KREME DEALS",
-  otherCategories: "",
-  price: "15300.00",
-  discountedFrom: "21500.00",
-  barcode: "",
-  baseUnit: "",
-  supplier: "",
-  cost: "",
-  sku: "sk-2117",
-  assignedSection: "",
-};
-
 // ─── Main image upload ──────────────────────────────────────────────────────
-
-function MainImageUpload({
-  imageUrl,
-  onChange,
-  onDelete,
-}: {
-  imageUrl: string | null;
-  onChange: (url: string) => void;
-  onDelete: () => void;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleFile = (file: File | undefined) => {
-    if (!file) return;
-    onChange(URL.createObjectURL(file));
-  };
-
-  return (
-    <div className="space-y-3">
-      <p className="text-[13px] font-medium text-slate-300">Main image</p>
-
-      <div
-        onClick={() => inputRef.current?.click()}
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {
-          e.preventDefault();
-          handleFile(e.dataTransfer.files[0]);
-        }}
-        className="mx-auto flex w-40 cursor-pointer flex-col items-center gap-2 rounded-lg border border-dashed border-white/15 bg-[#12151b] p-3 text-center transition hover:border-sky-500/40"
-      >
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt="Product"
-            className="h-28 w-full rounded-md object-cover"
-          />
-        ) : (
-          <div className="flex h-28 w-full items-center justify-center rounded-md bg-white/[0.03]">
-            <Upload size={20} className="text-slate-600" />
-          </div>
-        )}
-      </div>
-
-      <div className="text-center">
-        {imageUrl && (
-          <button
-            onClick={onDelete}
-            className="text-[12.5px] font-medium text-rose-400 hover:text-rose-300"
-          >
-            Delete
-          </button>
-        )}
-        <p className="text-[12px] text-slate-500">Click or drag to change</p>
-      </div>
-
-      <div className="space-y-0.5 text-center text-[11.5px] text-slate-500">
-        <p>Recommended ratio 4:5 (Width to height)</p>
-        <p>Recommended size: 1080 width x 1350 height</p>
-        <p>Max image size: 2.5 MB</p>
-        <p>Applies to all images</p>
-      </div>
-
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => handleFile(e.target.files?.[0])}
-      />
-    </div>
-  );
-}
 
 function GallerySection() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -181,7 +75,7 @@ function BarcodePreview({
   price,
 }: {
   brandName: string;
-  price: string;
+  price: string | number;
 }) {
   // A deterministic-looking bar pattern from a hash of the value, purely
   // visual — swap for a real barcode library (e.g. jsbarcode) when this
@@ -213,19 +107,17 @@ function BarcodePreview({
 
 // ─── Tab ────────────────────────────────────────────────────────────────────
 
-export default function ItemsTab({
-  productName = "KRISPY KREME",
+export default function ProductDetailsTab({
+  itemDetails,
 }: {
-  productName?: string;
+  itemDetails: GroupProductDetail;
 }) {
-  const [form, setForm] = useState<ProductDetailsForm>(INITIAL_FORM);
-  const [imageUrl, setImageUrl] = useState<string | null>(
-    "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=200&h=250&fit=crop",
-  );
+  const [form, setForm] = useState<GroupProductDetail>(itemDetails);
+  const [imageUrl, setImageUrl] = useState<string | null>(itemDetails?.image);
   const [barcodeGenerated, setBarcodeGenerated] = useState(false);
 
   const setField =
-    (key: keyof ProductDetailsForm) =>
+    (key: keyof GroupProductDetail) =>
     (e: React.ChangeEvent<HTMLInputElement>) =>
       setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
@@ -253,33 +145,33 @@ export default function ItemsTab({
         <p className="text-[13px] font-medium text-slate-300">General Info</p>
 
         <Field label="Product Type">
-          <Dropdown value={form.productType} placeholder="Select type" />
+          <Dropdown value={"Produced"} placeholder="Select type" />
         </Field>
         <Field label="Main category">
-          <Dropdown value={form.mainCategory} placeholder="Select category" />
+          <Dropdown value={"Category"} placeholder="Select category" />
         </Field>
-        <Field label="Other categories">
+        {/* <Field label="Other categories">
           <TextInput
             placeholder="Other categories (optional)"
             value={form.otherCategories}
             onChange={setField("otherCategories")}
           />
-        </Field>
+        </Field> */}
         <Field label="Price">
           <TextInput value={form.price} onChange={setField("price")} />
         </Field>
-        <Field label="Discounted from">
+        {/* <Field label="Discounted from">
           <TextInput
             value={form.discountedFrom}
             onChange={setField("discountedFrom")}
           />
-        </Field>
+        </Field> */}
         <Field label="Barcode">
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <TextInput
                 placeholder="Barcode"
-                value={form.barcode}
+                value={form.barcode!}
                 onChange={setField("barcode")}
                 className="flex-1"
               />
@@ -300,7 +192,7 @@ export default function ItemsTab({
             </div>
 
             {barcodeGenerated && (
-              <BarcodePreview brandName={productName} price={form.price} />
+              <BarcodePreview brandName={itemDetails.name} price={form.price} />
             )}
           </div>
         </Field>
@@ -315,7 +207,7 @@ export default function ItemsTab({
           <Field label="Cost">
             <TextInput
               placeholder="Cost"
-              value={form.cost}
+              value={form.cost!}
               onChange={setField("cost")}
             />
           </Field>

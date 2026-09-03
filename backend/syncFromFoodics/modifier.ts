@@ -80,32 +80,46 @@ const syncOptions = async (option: FoodicsModifierOption) => {
     },
   });
 
-  for (const branch of option.branches) {
-    const dbBranch = await prisma.branch.findUnique({
-      where: { foodicsId: branch.id },
-    });
+  if (option.branches.length) {
+    for (const branch of option?.branches) {
+      const dbBranch = await prisma.branch.findUnique({
+        where: { foodicsId: branch.id },
+      });
 
-    await prisma.modifierOptionBranch.upsert({
-      where: {
-        modifierOptionId_branchId: {
+      if (!dbBranch) {
+        console.warn(`⚠️ Missing branch mapping`, {
+          foodicsBranchId: branch.id,
+          modifierOptionId: option.id,
+          modifierOptionName: option.name,
+        });
+
+        continue;
+      }
+
+      await prisma.modifierOptionBranch.upsert({
+        where: {
+          modifierOptionId_branchId: {
+            modifierOptionId: optionData.id,
+            branchId: dbBranch?.id!,
+          },
+        },
+        update: {
+          price: branch.pivot.price,
+          isActive: branch.pivot.is_active,
+          isInStock: branch.pivot.is_in_stock,
+        },
+        create: {
           modifierOptionId: optionData.id,
           branchId: dbBranch?.id!,
+          price: branch.pivot.price,
+          isActive: branch.pivot.is_active,
+          isInStock: branch.pivot.is_in_stock,
         },
-      },
-      update: {
-        price: branch.pivot.price,
-        isActive: branch.pivot.is_active,
-        isInStock: branch.pivot.is_in_stock,
-      },
-      create: {
-        modifierOptionId: optionData.id,
-        branchId: dbBranch?.id!,
-        price: branch.pivot.price,
-        isActive: branch.pivot.is_active,
-        isInStock: branch.pivot.is_in_stock,
-      },
-    });
+      });
+    }
+    return optionData;
   }
+
   return optionData;
 };
 

@@ -2,10 +2,9 @@ import express from "express";
 import { authenticate, authorize } from "../../middleware/authenticate";
 import { getBranch, getBranches } from "../../controller/branchController";
 import {
-  getBranchByGroupId,
+  getBranchByGroupName,
   getGroups,
-  getProductByGroupId,
-  getProductDetails,
+  getProductsByGroupName,
 } from "../../controller/groupController";
 import {
   createAdmin,
@@ -25,16 +24,14 @@ adminRoutes.get(
   "/groups/products/:id",
   authenticate,
   authorize("ADMIN"),
-  getProductByGroupId,
+  getProductsByGroupName,
 );
 
 adminRoutes.get(
   "/groups/branches/:id",
   authenticate,
   authorize("ADMIN"),
-  getBranchByGroupId,
+  getBranchByGroupName,
 );
-
-adminRoutes.get("/groups/product-details/:id", authenticate, getProductDetails);
 
 export default adminRoutes;
