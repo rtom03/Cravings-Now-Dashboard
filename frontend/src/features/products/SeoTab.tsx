@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import FieldStack from "../../shared/FieldStack";
 import TextInput from "../../shared/TextInput";
+import { FieldStack } from "../../shared/FieldStack";
 
 const SeoTab = () => {
   const [form, setForm] = useState("");

@@ -21,6 +21,7 @@ import { useBrandStore } from "../../store/brandStore";
 import MenuModal from "../branches/MenuModal";
 import Options from "./Options";
 import ProductDetailsModal from "./ProductDetailsModal";
+import { ImageUploadBox } from "../../components/shared/ImageUploadBox";
 
 const Products = () => {
   const SUB_TABS = [
@@ -38,7 +39,7 @@ const Products = () => {
 
   // console.log(allProducts);
 
-  const [period, setPeriod] = useState<string | null>(null);
+  const [periods, setPeriods] = useState<Record<string, string | null>>({});
 
   const [prd, setPrd] = useState<ProductWithCategory[]>([]);
 
@@ -46,12 +47,15 @@ const Products = () => {
 
   const [open, setOpen] = useState<boolean>(false);
 
+  const updateProductImage = async (id: string, url: string | number) => {};
+
   const onProductClick = (id: string) => {
-    if (id) {
-      setProductId(id);
-      setOpen(!open);
+    if (!id) return;
+    setProductId(id);
+    if (products) {
+      console.log(products.filter((prd) => prd.id === id));
     }
-    return;
+    setOpen(true);
   };
   const removeArea = (id: string) => {
     setPrd((prev) => prev.filter((a) => a.id !== id));
@@ -66,11 +70,8 @@ const Products = () => {
     );
   }, [products, query]);
 
-  // const { page, setPage, pageSize, setPageSize, totalPages, paginated } =
-  //   usePagination(filtered!, 10);
   const { page, setPage, pageSize, setPageSize, totalPages, paginated } =
-    usePagination(products ?? [], 10);
-
+    usePagination(filtered ?? [], 10);
   // console.log(paginated);
   const columns: DataTableColumn<ProductWithCategory>[] = [
     {
@@ -79,16 +80,12 @@ const Products = () => {
       width: "80px",
       sortable: false,
       skeletonVariant: "avatar",
-      render: (row) =>
-        row.image ? (
-          <img
-            src={row.image}
-            alt={row.name}
-            className="h-11 w-11 rounded-md object-cover"
-          />
-        ) : (
-          <DashCell />
-        ),
+      render: (row) => (
+        <ImageUploadBox
+          image={row.image}
+          onUploaded={(url) => updateProductImage(row.id, url)}
+        />
+      ),
     },
     {
       key: "isActive",
@@ -156,10 +153,10 @@ const Products = () => {
       skeletonVariant: "dropdown",
       render: (row) => (
         <div className="flex justify-center">
-          {/* <EditableNumberCell
+          <EditableNumberCell
             value={row.price}
-            onChange={(price) => updateProduct(row.id, { price })}
-          /> */}
+            onChange={(price) => updateProductImage(row.id, row.price!)}
+          />
         </div>
       ),
     },
@@ -238,7 +235,12 @@ const Products = () => {
       // Inventory above, not wired to a real column until one exists.
       skeletonVariant: "dash",
       render: (row) => (
-        <PeriodSelect key={row.id} value={period} onChange={setPeriod} />
+        <PeriodSelect
+          value={periods[row.id] ?? null}
+          onChange={(value) =>
+            setPeriods((prev) => ({ ...prev, [row.id]: value }))
+          }
+        />
       ),
     },
     {
@@ -390,43 +392,6 @@ const Products = () => {
     },
   ];
 
-  const TABS = [
-    {
-      key: "items",
-      label: "Item",
-      content: <Options />,
-    },
-    {
-      key: "settings",
-      label: "Settings",
-      content: <Options />,
-    },
-    {
-      key: "availability",
-      label: "Availability",
-      content: <Options />,
-    },
-    {
-      key: "options",
-      label: "Options",
-      content: <Options />,
-    },
-    {
-      key: "confirm",
-      label: "Confirmations Message",
-      content: <Options />,
-    },
-    {
-      key: "seo",
-      label: "Seo",
-      content: <Options />,
-    },
-    {
-      key: "product-branches",
-      label: "Branches",
-      content: <Options />,
-    },
-  ];
   return (
     <div className="flex flex-col gap-4">
       <PageToolbar

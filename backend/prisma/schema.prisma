@@ -241,35 +241,37 @@ model Group {
 }
 
 model GroupProducts {
-  id                           String                 @id @default(uuid())
-  foodicsId                    String                 @unique
+  id                           String    @id @default(uuid())
+  foodicsId                    String    @unique
   sku                          String
   group_name                   String?
   barcode                      String?
   name                         String
-  nameLocalized                String?                @map("name_localized")
+  nameLocalized                String?   @map("name_localized")
   description                  String?
-  descriptionLocalized         String?                @map("description_localized")
+  descriptionLocalized         String?   @map("description_localized")
   image                        String?
-  isActive                     Boolean?               @default(true) @map("is_active")
-  isStockProduct               Boolean?               @default(false) @map("is_stock_product")
-  isNonRevenue                 Boolean?               @default(false) @map("is_non_revenue")
-  isReady                      Boolean?               @default(false) @map("is_ready")
-  pricingMethod                Int                    @map("pricing_method") // 1 = Pre Set, 2 = Open Price
-  sellingMethod                Int                    @map("selling_method") // 1 = Unit, 2 = Weight
-  costingMethod                Int                    @map("costing_method") // 1 = Fixed, 2 = From Ingredients
-  preparationTime              Int?                   @map("preparation_time")
+  isActive                     Boolean?  @default(true) @map("is_active")
+  isStockProduct               Boolean?  @default(false) @map("is_stock_product")
+  isNonRevenue                 Boolean?  @default(false) @map("is_non_revenue")
+  isReady                      Boolean?  @default(false) @map("is_ready")
+  pricingMethod                Int       @map("pricing_method") // 1 = Pre Set, 2 = Open Price
+  sellingMethod                Int       @map("selling_method") // 1 = Unit, 2 = Weight
+  costingMethod                Int       @map("costing_method") // 1 = Fixed, 2 = From Ingredients
+  preparationTime              Int?      @map("preparation_time")
   price                        Float?
   cost                         Float?
   calories                     Int?
-  walkingMinutesToBurnCalories Int?                   @map("walking_minutes_to_burn_calories")
-  isHighSalt                   Boolean?               @map("is_high_salt")
+  walkingMinutesToBurnCalories Int?      @map("walking_minutes_to_burn_calories")
+  isHighSalt                   Boolean?  @map("is_high_salt")
   pivot                        Json?
   groupId                      String?
-  group                        Group?                 @relation(fields: [groupId], references: [id])
-  categoryId                   String?                @map("category_id")
-  category                     Category?              @relation(fields: [categoryId], references: [id])
-  groupProductModifiers        GroupProductModifier[]
+  reactivateAt                 DateTime?
+
+  group                 Group?                 @relation(fields: [groupId], references: [id])
+  categoryId            String?                @map("category_id")
+  category              Category?              @relation(fields: [categoryId], references: [id])
+  groupProductModifiers GroupProductModifier[]
 }
 
 model Modifier {

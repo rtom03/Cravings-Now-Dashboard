@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../utils/db";
 import { IDParams } from "./branchController";
+import { Prisma } from "../generated/prisma/client";
 
 const getProductDetails = async (req: Request<IDParams>, res: Response) => {
   const { id } = req.params;
@@ -28,9 +29,63 @@ const getProductDetails = async (req: Request<IDParams>, res: Response) => {
   }
 };
 
-const updateProductById = async (req: Request<IDParams>, res: Response) => {
+// Only these keys are ever written to the DB, regardless of what
+// else shows up in req.body. No shape/type checking here — frontend
+// owns that now.
+const UPDATABLE_FIELDS = [
+  "description",
+  "price",
+  "cost",
+  "sku",
+  "calories",
+  "image",
+  "isActive",
+  "isReady",
+  "isHighSalt",
+  "isNonRevenue",
+  "isStockProduct",
+  "preparationTime",
+  "costingMethod",
+  "pricingMethod",
+  "sellingMethod",
+  "walkingMinutesToBurnCalories",
+  "reactivateAt",
+] as const;
+
+function pickUpdatableFields(body: Record<string, unknown>) {
+  const data: Record<string, unknown> = {};
+  for (const key of UPDATABLE_FIELDS) {
+    if (key in body) data[key] = body[key];
+  }
+  return data;
+}
+
+export async function updateProduct(req: Request<IDParams>, res: Response) {
   const { id } = req.params;
-};
+  const data = pickUpdatableFields(req.body);
+
+  if (Object.keys(data).length === 0) {
+    return res.status(400).json({ error: "No fields provided to update" });
+  }
+
+  try {
+    const updated = await prisma.groupProducts.update({
+      where: { id },
+      data,
+      include: { category: true },
+    });
+    return res.json(updated);
+  } catch (err) {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2025"
+    ) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    console.error("updateProduct failed:", err);
+    return res.status(500).json({ error: "Failed to update product" });
+  }
+}
 
 const deleteProductById = async (req: Request<IDParams>, res: Response) => {
   const { id } = req.params;

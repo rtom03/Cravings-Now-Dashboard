@@ -1,6 +1,6 @@
 import { useState } from "react";
 import TextInput from "../../shared/TextInput";
-import FieldStack from "../../shared/FieldStack";
+import { FieldStack } from "../../shared/FieldStack";
 
 // ─── Shared primitives (same conventions as GeneralTab / ProductDetailsTab) ─
 

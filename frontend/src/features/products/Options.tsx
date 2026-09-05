@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Plus,
   Upload,
@@ -8,10 +8,13 @@ import {
   History,
   X,
   ChevronDown,
+  Loader2,
 } from "lucide-react";
 import { GroupProductModifiers, Options } from "../../types/type";
 import { useUpdateModifierOption } from "../../api/productMutate";
-import MainImageUpload from "../../shared/MainImageUpload";
+import EditModal from "../../shared/EditModal";
+import { uploadImageToCloudinary } from "../../lib/uploadImage";
+import { ImageUploadBox } from "../../components/shared/ImageUploadBox";
 
 // Local alias kept only because ProductOptionsTab was written against
 // `OptionEntry` internally — maps directly to the canonical `Options` type,
@@ -62,13 +65,11 @@ function ConstraintBadge({ label }: { label: string }) {
 
 function OptionsTableHeader() {
   const cols = [
-    { label: "Sort order", width: "100px" },
     { label: "Image", width: "90px" },
-    { label: "English", width: "1fr" },
-    { label: "Arabic", width: "1fr" },
-    { label: "Price", width: "100px" },
-    { label: "Modifier", width: "140px" },
-    { label: "Controls", width: "120px" },
+    { label: "Name", width: "500px" },
+    { label: "Price", width: "120px" },
+    { label: "Modifier", width: "160px" },
+    { label: "Controls", width: "220px" },
     { label: "History", width: "80px" },
   ];
   return (
@@ -95,53 +96,55 @@ function OptionRow({
   onUpdate,
   onRemove,
   onToggleActive,
+  onEdit,
 }: {
-  option: Options["modifierOption"];
+  option: Partial<Options["modifierOption"]>;
   onUpdate: (patch: Partial<Options["modifierOption"]>) => void;
   onRemove: () => void;
   onToggleActive: () => void;
+  onEdit: () => void;
 }) {
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [uploading, setUploading] = useState(false);
+
+  // console.log(option);
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-
     if (!file) return;
+    setUploading(true);
 
-    // temporary — upload file and get URL here
-    const imageUrl = URL.createObjectURL(file);
-
-    onUpdate({
-      image: imageUrl,
-    });
+    try {
+      const imageUrl = await uploadImageToCloudinary(file);
+      onUpdate({ image: imageUrl }); // real Cloudinary URL — safe to persist
+    } catch (err) {
+      console.error("Image upload failed:", err);
+    } finally {
+      setUploading(false);
+    }
   };
+
   return (
     <div
       className="grid items-center border-b border-white/[0.06] px-4 py-3 transition hover:bg-white/[0.03]"
       style={{
-        gridTemplateColumns: "100px 90px 1fr 1fr 100px 140px 120px 80px",
+        gridTemplateColumns: "90px 500px 120px 160px 220px 80px",
       }}
     >
       <div className="relative flex justify-center">
         <div className="h-14 w-14 overflow-hidden rounded-md border border-white/10 bg-white/5">
           {/* <img src={option?.image} alt="" /> */}
           <label className="cursor-pointer">
-            <div className="h-14 w-14 overflow-hidden rounded-md border border-white/10 bg-white/5">
-              {option.image ? (
-                <img
-                  src={option.image}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs text-slate-500">
-                  Upload
-                </div>
-              )}
+            <div className="relative h-14 w-14 overflow-hidden rounded-md border border-white/10 bg-white/5">
+              <ImageUploadBox
+                image={option.image}
+                onUploaded={(url) => onUpdate({ image: url })}
+              />
             </div>
 
             <input
               type="file"
               accept="image/*"
               className="hidden"
+              disabled={uploading}
               onChange={handleImageChange}
             />
           </label>
@@ -158,11 +161,11 @@ function OptionRow({
       <span className="text-center text-[13px] font-medium text-slate-100">
         {option.name}
       </span>
-      <span className="text-center text-[13px] text-slate-300">
+      {/* <span className="text-center text-[13px] text-slate-300">
         {option.nameLocalized ?? option.name}
-      </span>
+      </span> */}
       <span className="text-center text-[13px] text-slate-300">
-        {option.price.toFixed(2)}
+        {option?.price?.toFixed(2)}
       </span>
 
       {/* "No Modifier" — literal constant; no nested-modifier field exists
@@ -173,7 +176,12 @@ function OptionRow({
       </span>
 
       <div className="flex items-center justify-center gap-1.5">
-        <IconButton icon={Pencil} tone="edit" label="Edit option" />
+        <IconButton
+          icon={Pencil}
+          tone="edit"
+          label="Edit option"
+          onClick={onEdit}
+        />
         <IconButton
           icon={Check}
           tone="confirm"
@@ -225,13 +233,6 @@ function AddOptionRow({
       className="grid items-center gap-2 border-b border-white/[0.06] px-4 py-3"
       style={{ gridTemplateColumns: "100px 90px 1fr 1fr 100px 140px 40px" }}
     >
-      <input
-        placeholder="Sort or..."
-        value={draft.sortOrder}
-        onChange={(e) => setDraft((d) => ({ ...d, sortOrder: e.target.value }))}
-        className="w-full rounded-md border border-white/10 bg-[#12151b] px-2 py-1.5 text-center text-[12.5px] text-slate-200 placeholder:text-slate-500 focus:border-sky-500/60 focus:outline-none"
-      />
-
       <button className="flex flex-col items-center justify-center gap-1 rounded-md border border-dashed border-white/15 py-2 text-[10.5px] text-slate-400 hover:border-sky-500/40">
         <Upload size={13} />
         Upload
@@ -243,14 +244,7 @@ function AddOptionRow({
         onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
         className="w-full rounded-md border border-white/10 bg-[#12151b] px-2.5 py-1.5 text-[12.5px] text-slate-200 placeholder:text-slate-500 focus:border-sky-500/60 focus:outline-none"
       />
-      <input
-        placeholder="Arabic name"
-        value={draft.nameLocalized}
-        onChange={(e) =>
-          setDraft((d) => ({ ...d, nameLocalized: e.target.value }))
-        }
-        className="w-full rounded-md border border-white/10 bg-[#12151b] px-2.5 py-1.5 text-[12.5px] text-slate-200 placeholder:text-slate-500 focus:border-sky-500/60 focus:outline-none"
-      />
+
       <input
         placeholder="Price"
         value={draft.price}
@@ -267,9 +261,7 @@ function AddOptionRow({
         onClick={submit}
         aria-label="Add option"
         className="flex h-7 w-7 items-center justify-center rounded-full border border-emerald-500/50 text-emerald-400 transition hover:bg-emerald-500/10"
-      >
-        <Plus size={14} />
-      </button>
+      ></button>
     </div>
   );
 }
@@ -305,6 +297,8 @@ function ModifierGroupSection({
   //   });
   // };
   const updateModifierOption = useUpdateModifierOption();
+
+  const { isPending } = useUpdateModifierOption();
 
   const updateOption = (
     optionId: string,
@@ -376,8 +370,13 @@ function ModifierGroupSection({
     });
   };
 
+  const [selectedOption, setSelectedOption] = useState<
+    Options["modifierOption"] | null
+  >(null);
+
   return (
-    <div className="overflow-hidden rounded-lg border border-white/10">
+    <div className="relative rounded-lg border border-white/10">
+      {" "}
       {/* Group header */}
       <div className="flex items-center justify-between bg-white/[0.04] px-4 py-3">
         <div>
@@ -394,7 +393,6 @@ function ModifierGroupSection({
           <ChevronDown size={12} className="-rotate-90" />
         </button>
       </div>
-
       {/* Constraints bar */}
       <div className="flex flex-wrap items-center gap-4 bg-[#0a0c10] px-4 py-2">
         <span className="text-[12px] font-medium text-slate-300">
@@ -403,7 +401,6 @@ function ModifierGroupSection({
         {isRequired && <ConstraintBadge label="Required" />}
         {isMultiple && <ConstraintBadge label="Multiple" />}
       </div>
-
       {/* Table */}
       <OptionsTableHeader />
       {group.modifier.options
@@ -414,6 +411,7 @@ function ModifierGroupSection({
             option={option.modifierOption}
             onUpdate={(patch) => updateOption(option.modifierOptionId, patch)}
             onRemove={() => removeOption(option.modifierOptionId)}
+            onEdit={() => setSelectedOption(option.modifierOption)}
             onToggleActive={() =>
               updateOption(option.modifierOptionId, {
                 isActive: !option.modifierOption.isActive,
@@ -422,6 +420,17 @@ function ModifierGroupSection({
           />
         ))}
       <AddOptionRow onAdd={addOption} />
+      {selectedOption && (
+        <EditModal
+          option={selectedOption}
+          onClose={() => setSelectedOption(null)}
+          isPending={isPending}
+          onSave={(patch) => {
+            updateOption(selectedOption.id, patch);
+            setSelectedOption(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -435,14 +444,9 @@ export default function ProductOptionsTab({
 }) {
   const [groups, setGroups] = useState(groupProductModifiers);
 
-  // updateMutation.mutate({
-  //   id: groups,
-  //   data: {
-  //     price: 2500,
-  //   },
-  // });
-
-  // console.log(groups);
+  useEffect(() => {
+    setGroups(groupProductModifiers);
+  }, [groupProductModifiers]);
 
   const updateGroup = (i: number, next: GroupProductModifiers) => {
     setGroups((prev) => prev.map((g, idx) => (idx === i ? next : g)));

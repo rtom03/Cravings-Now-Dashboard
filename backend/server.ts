@@ -5,6 +5,7 @@ import express from "express";
 import morgan from "morgan";
 import { connectDB } from "./utils/db";
 import routes from "./routes";
+// import "./jobs/reactivateProduct";
 
 dotenv.config();
 
