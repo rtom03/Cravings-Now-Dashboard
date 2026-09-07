@@ -1,0 +1,19 @@
+{
+  "id": "bbe4ef62-619d-4d90-9a18-9441b613453c",
+  "foodicsId": "9a430ccb-b405-4a09-b92d-04e731b500fe",
+  "sku": "sk-1853",
+  "name": "Choco-Nut Halo Doughnut",
+  "image": "https://res.cloudinary.com/bnfcyrg8/image/upload/v1788440552/imgi_12_3288211-Choco-Nut_Halo_Doughnut_1.jpg",
+  "nameLocalized": null,
+  "isActive": true,
+  "isInStock": true,
+  "costingMethod": 2,
+  "price": 0,
+  "cost": null,
+  "calories": null,
+  "index": null,
+  "taxGroupId": null,
+  "createdAt": "2026-08-21T12:18:23.461Z",
+  "updatedAt": "2026-09-03T13:12:13.387Z",
+  "deletedAt": null
+}
