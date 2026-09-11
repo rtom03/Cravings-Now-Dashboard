@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../utils/db";
 import { syncBranches } from "../services/foodics/branches.service";
 import { FoodicsBranch } from "../types/index.types";
+import { getActiveTaxGroup } from "../services/taxService";
 
 export type IDParams = {
   id: string;
@@ -95,5 +96,6 @@ const upsertBranch = async (branch: FoodicsBranch) => {
     },
   });
 };
+// getActiveTaxGroup();
 
 export { getBranch, getBranches, upsertBranch, branchSync };

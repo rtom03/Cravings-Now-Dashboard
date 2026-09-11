@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../utils/db";
 import { IDParams } from "./branchController";
+import { syncTaxGroup } from "../syncFromFoodics/taxGroup";
 // import { syncAllProductModifiers } from "../services/foodics/modifier.service";
 // import { syncBranches } from "../services/foodics/branches.service";
 
@@ -71,4 +72,7 @@ const getProductsByGroupName = async (
 
 // syncAllProductModifiers();
 // syncBranches();
+// syncTaxGroup();
+// syncTax();
+
 export { getGroups, getBranchByGroupName, getProductsByGroupName };
