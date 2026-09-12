@@ -1,7 +1,6 @@
 // controllers/order.controller.ts
 import { Request, Response } from "express";
 import { createOrder } from "../services/orderServices";
-import { syncTaxGroup } from "../syncFromFoodics/taxGroup";
 
 export async function createOrderHandler(req: Request, res: Response) {
   try {

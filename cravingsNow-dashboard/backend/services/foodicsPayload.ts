@@ -1,11 +1,12 @@
 // services/foodicsPayload.ts
+
 import {
   Order,
   OrderProduct,
   OrderProductOption,
   OrderCharge,
   OrderPayment,
-} from "@prisma/client";
+} from "../generated/prisma/client";
 
 type FullOrder = Order & {
   products: (OrderProduct & { options: OrderProductOption[] })[];

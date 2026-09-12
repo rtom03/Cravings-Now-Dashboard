@@ -26,8 +26,8 @@ adminRoutes.get(
 );
 adminRoutes.get(
   "/groups/products/:id",
-  authenticate,
-  authorize("ADMIN"),
+  // authenticate,
+  // authorize("ADMIN"),
   getProductsByGroupName,
 );
 

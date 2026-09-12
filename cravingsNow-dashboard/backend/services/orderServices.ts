@@ -104,6 +104,7 @@ export async function createOrder(input: CreateOrderInput) {
       discountAmount: 0,
       taxExclusiveDiscountAmount: 0,
       totalCost: 0,
+      status: "Pending",
       isIngredientsWasted: false,
       isIngredientsReturned: false,
       addedAt: new Date(),
@@ -154,7 +155,6 @@ export async function createOrder(input: CreateOrderInput) {
       data: {
         type: "DELIVERY",
         source: "API",
-        status: "Pending",
         guests: input.guests,
         kitchenNotes: input.kitchenNotes ?? "",
         customerNotes: input.customerNotes ?? "",
