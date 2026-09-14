@@ -5,6 +5,7 @@ import {
   updateProduct,
   updateProductOption,
 } from "../controller/productController";
+import { getProducts } from "../controller/groupController";
 // import { syncGrpEp } from "../controller/groupController";
 
 const productsRoutes = express.Router();
@@ -22,5 +23,7 @@ productsRoutes.patch(
   authorize("ADMIN"),
   updateProduct,
 );
+
+productsRoutes.get("/", getProducts);
 
 export default productsRoutes;

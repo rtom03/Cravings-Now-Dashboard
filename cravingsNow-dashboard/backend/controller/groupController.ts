@@ -2,8 +2,46 @@ import { Request, Response } from "express";
 import { prisma } from "../utils/db";
 import { IDParams } from "./branchController";
 import { syncTaxGroup } from "../syncFromFoodics/taxGroup";
+import { Product } from "../types/group";
 // import { syncAllProductModifiers } from "../services/foodics/modifier.service";
 // import { syncBranches } from "../services/foodics/branches.service";
+
+const mapProduct = (product: any): Product => {
+  return {
+    id: product.id,
+    sku: product.sku,
+    barcode: product.barcode,
+    name: product.name,
+    image: product.image,
+    nameLocalized: product.nameLocalized,
+    description: product.description,
+    price: product.price,
+    isActive: product.isActive,
+    isStockProduct: product?.isStockProduct,
+    isNonRevenue: product?.isNonRevenue,
+    isReady: product?.isReady,
+    pricingMethod: product.pricingMethod,
+    sellingMethod: product.sellingMethod,
+    costingMethod: product.costingMethod,
+    cost: product.cost,
+    calories: product.calories,
+    walkingMinutesToBurnCalories: product.walkingMinutesToBurnCalories,
+    isHighSalt: product.isHighSalt,
+    meta: product.meta,
+    reactivateAt: product.reactivateAt,
+    category: product?.category,
+    modifiers: product.groupProductModifiers.map(
+      (groupProductModifier: any) => ({
+        id: groupProductModifier.modifier.id,
+        name: groupProductModifier.modifier.name,
+
+        options: groupProductModifier.modifier.options.map(
+          (option: any) => option.modifierOption,
+        ),
+      }),
+    ),
+  };
+};
 
 const getGroups = async (req: Request, res: Response) => {
   try {
@@ -61,12 +99,77 @@ const getProductsByGroupName = async (
           mode: "insensitive",
         },
       },
-      include: { category: true },
+      include: {
+        category: true,
+        groupProductModifiers: {
+          include: {
+            modifier: {
+              include: {
+                options: {
+                  where: {
+                    modifierOption: {
+                      isActive: true,
+                    },
+                  },
+                  include: {
+                    modifierOption: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
-    res.status(201).json({ products });
+    // res.status(201).json({ products });
+    const mappedProducts = products.map(mapProduct);
+
+    res.status(200).json({
+      products: mappedProducts,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json(`An err occured while fetching data ${error}`);
+  }
+};
+
+const getProducts = async (req: Request, res: Response) => {
+  try {
+    const products = await prisma.groupProducts.findMany({
+      include: {
+        category: true,
+        groupProductModifiers: {
+          include: {
+            modifier: {
+              include: {
+                options: {
+                  where: {
+                    modifierOption: {
+                      isActive: true,
+                    },
+                  },
+                  include: {
+                    modifierOption: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const mappedProducts = products.map(mapProduct);
+
+    res.status(200).json({
+      products: mappedProducts,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "An error occurred while fetching products",
+    });
   }
 };
 
@@ -75,4 +178,4 @@ const getProductsByGroupName = async (
 // syncTaxGroup();
 // syncTax();
 
-export { getGroups, getBranchByGroupName, getProductsByGroupName };
+export { getGroups, getBranchByGroupName, getProductsByGroupName, getProducts };
