@@ -34,7 +34,8 @@ const mapProduct = (product: any): Product => {
       (groupProductModifier: any) => ({
         id: groupProductModifier.modifier.id,
         name: groupProductModifier.modifier.name,
-
+        minimumOptions: groupProductModifier.minimumOptions,
+        maximumOptions: groupProductModifier.maximumOptions,
         options: groupProductModifier.modifier.options.map(
           (option: any) => option.modifierOption,
         ),

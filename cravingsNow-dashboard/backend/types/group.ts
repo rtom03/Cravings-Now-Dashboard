@@ -13,6 +13,10 @@ export interface ProductOption {
 export interface ProductModifier {
   id: string;
   name: string;
+  minimumOptions: number;
+  maximumOptions: number;
+  isSplittableInHalf?: boolean;
+  uniqueOptions?: boolean;
   options: ProductOption[];
 }
 

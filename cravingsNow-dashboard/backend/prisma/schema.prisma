@@ -58,9 +58,10 @@ model Customer {
   addresses CustomerAddress[] // inverse of CustomerAddress.customer (one-to-many)
   order     Order[]
 
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  deletedAt      DateTime?       @map("deleted_at")
+  customerOrders CustomerOrder[]
 
   @@map("customers")
 }
@@ -501,10 +502,11 @@ model Charge {
   isOpenCharge  Boolean     @map("is_open_charge")
 
   // --- Relations ---
-  taxGroupId  String?       @unique @map("tax_group_id")
-  taxGroup    TaxGroup?     @relation(fields: [taxGroupId], references: [id])
-  branches    Branch[]      @relation("BranchCharges")
-  orderCharge OrderCharge[]
+  taxGroupId          String?               @unique @map("tax_group_id")
+  taxGroup            TaxGroup?             @relation(fields: [taxGroupId], references: [id])
+  branches            Branch[]              @relation("BranchCharges")
+  orderCharge         OrderCharge[]
+  customerOrderCharge CustomerOrderCharge[]
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -582,11 +584,13 @@ model Order {
 
   revenueCenter Json? @map("revenue_center") // same JSON-snapshot pattern as Section/Table/Device
 
-  payments OrderPayment[]
-  charges  OrderCharge[]
-  taxes    OrderTax[]
-  products OrderProduct[]
-  tags     Tag[]          @relation("OrderTags") // no pivot shown -> plain many-to-many
+  payments        OrderPayment[]
+  charges         OrderCharge[]
+  taxes           OrderTax[]
+  products        OrderProduct[]
+  tags            Tag[]          @relation("OrderTags") // no pivot shown -> plain many-to-many
+  customerOrderId String         @map("customer_order_id")
+  customerOrder   CustomerOrder  @relation(fields: [customerOrderId], references: [id])
 
   openedAt          DateTime? @map("opened_at")
   dueAt             DateTime? @map("due_at")
@@ -771,6 +775,51 @@ model OrderPayment {
   @@map("order_payments")
 }
 
+model CustomerOrder {
+  id String @id @default(uuid())
+
+  customerId String?   @map("customer_id")
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
+  customerAddressId String?          @map("customer_address_id")
+  customerAddress   CustomerAddress? @relation(fields: [customerAddressId], references: [id])
+
+  subtotalPrice Float @map("subtotal_price") // sum of every brand order's subtotal
+  totalPrice    Float @map("total_price") // subtotal + charges + tax, the actual amount charged once
+
+  couponId String? @map("coupon_id")
+  coupon   Coupon? @relation(fields: [couponId], references: [id])
+
+  dueAt DateTime? @map("due_at")
+
+  orders  Order[] // one per brand present in the cart
+  charges CustomerOrderCharge[] // delivery fee etc. — lives here only, never split per brand
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("customer_orders")
+}
+
+// Charges at the customer-order level, unrelated to any single brand's
+// Foodics submission — this is the "handled as a whole" requirement.
+
+// Charges at the customer-order level, unrelated to any single brand's
+// Foodics submission — this is the "handled as a whole" requirement.
+model CustomerOrderCharge {
+  id                 String @id @default(uuid())
+  amount             Float
+  taxExclusiveAmount Float  @map("tax_exclusive_amount")
+
+  customerOrderId String        @map("customer_order_id")
+  customerOrder   CustomerOrder @relation(fields: [customerOrderId], references: [id])
+
+  chargeId String  @map("charge_id")
+  charge   Charge? @relation(fields: [chargeId], references: [id])
+
+  @@map("customer_order_charges")
+}
+
 model CustomerAddress {
   id        String @id @default(uuid())
   foodicsId String @unique
@@ -790,9 +839,10 @@ model CustomerAddress {
   deliveryZoneId String?       @map("delivery_zone_id")
   deliveryZone   DeliveryZone? @relation(fields: [deliveryZoneId], references: [id])
 
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  deletedAt      DateTime?       @map("deleted_at")
+  customerOrders CustomerOrder[]
 
   @@map("customer_addresses")
 }
@@ -891,9 +941,10 @@ model Coupon {
 
   // --- Relations ---
 
-  discountId String   @unique @map("discount_id")
-  order      Order?   @relation(fields: [orderId], references: [id])
-  discount   Discount @relation(fields: [discountId], references: [id])
+  discountId    String          @unique @map("discount_id")
+  order         Order?          @relation(fields: [orderId], references: [id])
+  discount      Discount        @relation(fields: [discountId], references: [id])
+  customerOrder CustomerOrder[]
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
