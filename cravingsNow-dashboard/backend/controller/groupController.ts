@@ -3,6 +3,7 @@ import { prisma } from "../utils/db";
 import { IDParams } from "./branchController";
 import { syncTaxGroup } from "../syncFromFoodics/taxGroup";
 import { Product } from "../types/group";
+import { syncGrpEp } from "../syncFromFoodics/group";
 // import { syncAllProductModifiers } from "../services/foodics/modifier.service";
 // import { syncBranches } from "../services/foodics/branches.service";
 
@@ -95,7 +96,7 @@ const getProductsByGroupName = async (
     // console.log(group.name);
     const products = await prisma.groupProducts.findMany({
       where: {
-        group_name: {
+        groupName: {
           contains: group?.name,
           mode: "insensitive",
         },
@@ -178,5 +179,6 @@ const getProducts = async (req: Request, res: Response) => {
 // syncBranches();
 // syncTaxGroup();
 // syncTax();
+// syncGrpEp();
 
 export { getGroups, getBranchByGroupName, getProductsByGroupName, getProducts };

@@ -5,6 +5,7 @@ import categoryRoutes from "./categoryRoute";
 import adminRoutes from "./admin/route";
 import storeRoutes from "./store/route";
 import productsRoutes from "./productsRoutes";
+import orderRoute from "./orderRoutes";
 
 const routes = express.Router();
 
@@ -14,5 +15,5 @@ routes.use("/categories", categoryRoutes);
 routes.use("/products", productsRoutes);
 routes.use("/admin", adminRoutes);
 routes.use("/store", storeRoutes);
-
+routes.use("/orders", orderRoute);
 export default routes;

@@ -87,6 +87,7 @@ model Branch {
   // type                    Int
   inventoryEndOfDayTime String  @map("inventory_end_of_day_time")
   receivesOnlineOrders  Boolean @default(false) @map("receives_online_orders")
+  groupName             String?
 
   // --- Relations ---
 
@@ -175,7 +176,7 @@ model GroupProducts {
   id                           String    @id @default(uuid())
   foodicsId                    String    @unique
   sku                          String
-  group_name                   String?
+  groupName                    String?
   barcode                      String?
   name                         String
   nameLocalized                String?   @map("name_localized")
@@ -205,7 +206,6 @@ model GroupProducts {
   categoryId            String?                @map("category_id")
   category              Category?              @relation(fields: [categoryId], references: [id])
   groupProductModifiers GroupProductModifier[]
-  orderProducts         OrderProduct[]
 }
 
 model Modifier {
@@ -591,6 +591,7 @@ model Order {
   tags            Tag[]          @relation("OrderTags") // no pivot shown -> plain many-to-many
   customerOrderId String         @map("customer_order_id")
   customerOrder   CustomerOrder  @relation(fields: [customerOrderId], references: [id])
+  coupons         Coupon[]
 
   openedAt          DateTime? @map("opened_at")
   dueAt             DateTime? @map("due_at")
@@ -604,7 +605,6 @@ model Order {
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  coupons   Coupon[]
 
   @@map("orders")
 }
@@ -625,6 +625,7 @@ model OrderTax {
 
 model OrderProduct {
   id                         String          @id @default(uuid())
+  foodicsId                  String?
   discountType               Int?            @map("discount_type")
   quantity                   Int
   returnedQuantity           Int?            @map("returned_quantity")
@@ -653,8 +654,7 @@ model OrderProduct {
   orderId String @map("order_id")
   order   Order  @relation(fields: [orderId], references: [id])
 
-  productId String        @map("product_id")
-  product   GroupProducts @relation(fields: [productId], references: [id]) // catalog reference
+  productId String @map("product_id")
 
   discountId String?   @map("discount_id")
   discount   Discount? @relation("OrderProductDiscount", fields: [discountId], references: [id])
@@ -691,6 +691,7 @@ model OrderProductTax {
 
 model OrderProductOption {
   id                         String    @id @default(uuid())
+  foodicsId                  String?
   quantity                   Int
   partition                  Int?
   unitPrice                  Float     @map("unit_price")

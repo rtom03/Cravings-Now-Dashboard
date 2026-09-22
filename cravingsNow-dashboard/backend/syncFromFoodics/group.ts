@@ -18,9 +18,9 @@ const upsertGroup = async (group: FdGroup) => {
     },
   });
 };
-const upsertGroupProducts = async (
+export const upsertGroupProducts = async (
   product: FoodicsGroupsProducts,
-  catId: string,
+  // catId: string,
 ) => {
   return await prisma.groupProducts.upsert({
     where: { foodicsId: product.id },
@@ -28,7 +28,7 @@ const upsertGroupProducts = async (
       name: product.name,
       nameLocalized: product.name_localized,
       sku: product.sku,
-      // group_name: "Scoop'd Ordable Menu",
+      groupName: "Burger Nation",
       image: product.image,
       description: product.description,
       descriptionLocalized: product.description_localized,
@@ -45,14 +45,14 @@ const upsertGroupProducts = async (
       walkingMinutesToBurnCalories: product.walking_minutes_to_burn_calories,
       isHighSalt: product.is_high_salt,
       pivot: product.pivot,
-      categoryId: catId,
+      // categoryId: catId,
     },
     create: {
       foodicsId: product.id,
       name: product.name,
       nameLocalized: product.name_localized,
       sku: product.sku,
-      // group_name: "Scoop'd Ordable Menu",
+      groupName: "Burger Nation",
       image: product.image,
       description: product.description,
       descriptionLocalized: product.description_localized,
@@ -69,19 +69,22 @@ const upsertGroupProducts = async (
       walkingMinutesToBurnCalories: product.walking_minutes_to_burn_calories,
       isHighSalt: product.is_high_salt,
       pivot: product.pivot,
-      categoryId: catId,
+      // categoryId: catId,
     },
   });
 };
 
-// const syncGrpEp = async (req: Request, res: Response) => {
-//   const id = "9c1e4e06-5000-4603-ab30-b0ca5f146b51";
-//   try {
-//     // const group = await syncGroup(id);
-//     const groupProducts = await syncGroupProducts(id);
-//     // return res.json({ group });
-//     return res.json({ groupProducts });
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
+export const syncGrpEp = async () => {
+  const id = "9dd356a1-1554-41e9-8157-d6202eb890ea";
+  try {
+    // const group = await syncGroup(id);
+    const groupProducts = await syncGroupProducts(id);
+
+    console.log("Updated");
+    // return res.json({ group });
+    // return res.json({ groupProducts });
+    // return groupProducts;
+  } catch (error) {
+    console.log(error);
+  }
+};

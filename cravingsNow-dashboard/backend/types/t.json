@@ -1,0 +1,32 @@
+{
+  "customerId": "ggt6",
+  "customerAddressId": "645tr",
+  "location": { "latitude": 6.4351386719314, "longitude": 3.4372707314504 },
+  "products": [
+    {
+      "productId": "f4339dd5-5486-4635-b184-29121e7b68e1",
+      "quantity": 1,
+      "foodicsId": "a2c496c1-98e8-4c63-a3d8-ae6fd10e98a8",
+      "options": [
+        {
+          "modifierOptionId": "bbe4ef62-619d-4d90-9a18-9441b613453c",
+          "quantity": 1
+        },
+        {
+          "modifierOptionId": "cc6268d1-fe04-4307-b880-37b6836220c6",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "productId": "038b4385-d0cc-4fde-bff4-b12e16ae63f1",
+      "quantity": 1,
+      "foodicsId": "a2ce850f-591f-4d21-b8f0-c161b4825798"
+    }
+  ],
+  "charges": [{ "chargeId": "88huggtffyvb" }],
+  "payment": {
+    "paymentMethodId": "1",
+    "amount": 130000
+  }
+}

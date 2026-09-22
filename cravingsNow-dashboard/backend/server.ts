@@ -6,7 +6,7 @@ import morgan from "morgan";
 import { connectDB } from "./utils/db";
 import routes from "./routes";
 // import "./jobs/reactivateProduct";
-
+import "./jobs/scheduleFoodicsSync";
 dotenv.config();
 
 connectDB();

@@ -1,0 +1,84 @@
+{
+  "data": [
+    {
+      "ingredients": [],
+      "id": "a2c496c1-98e8-4c63-a3d8-ae6fd10e98a8",
+      "sku": "sk-0001",
+      "barcode": null,
+      "name": "Delight Box",
+      "name_localized": null,
+      "description": null,
+      "description_localized": null,
+      "image": null,
+      "is_active": true,
+      "is_stock_product": false,
+      "is_non_revenue": false,
+      "is_ready": true,
+      "pricing_method": 1,
+      "selling_method": 1,
+      "costing_method": 2,
+      "preparation_time": null,
+      "price": 130000,
+      "cost": null,
+      "calories": null,
+      "walking_minutes_to_burn_calories": null,
+      "is_high_salt": false,
+      "created_at": "2026-09-17 13:37:45",
+      "updated_at": "2026-09-22 12:12:08",
+      "deleted_at": null,
+      "meta": null
+    },
+    {
+      "ingredients": [],
+      "id": "a2ce850f-591f-4d21-b8f0-c161b4825798",
+      "sku": "sk-0002",
+      "barcode": null,
+      "name": "OREO OVERLOAD",
+      "name_localized": null,
+      "description": null,
+      "description_localized": null,
+      "image": null,
+      "is_active": true,
+      "is_stock_product": false,
+      "is_non_revenue": false,
+      "is_ready": true,
+      "pricing_method": 1,
+      "selling_method": 1,
+      "costing_method": 2,
+      "preparation_time": null,
+      "price": 5300,
+      "cost": null,
+      "calories": null,
+      "walking_minutes_to_burn_calories": null,
+      "is_high_salt": false,
+      "created_at": "2026-09-22 12:06:33",
+      "updated_at": "2026-09-22 12:06:33",
+      "deleted_at": null,
+      "meta": null
+    }
+  ],
+  "links": {
+    "first": "https://api-sandbox.foodics.com/v5/products?page=1",
+    "last": "https://api-sandbox.foodics.com/v5/products?page=1",
+    "prev": null,
+    "next": null
+  },
+  "meta": {
+    "current_page": 1,
+    "from": 1,
+    "last_page": 1,
+    "links": [
+      { "url": null, "label": "&laquo; Previous", "active": false },
+      {
+        "url": "https://api-sandbox.foodics.com/v5/products?page=1",
+        "label": "1",
+        "active": true
+      },
+      { "url": null, "label": "Next &raquo;", "active": false }
+    ],
+    "path": "https://api-sandbox.foodics.com/v5/products",
+    "per_page": 50,
+    "to": 2,
+    "total": 2
+  }
+}

@@ -5,6 +5,8 @@ import { prisma } from "../utils/db";
 
 const FOODICS_API_BASE = process.env.FOODICS_API_BASE!;
 const FOODICS_API_TOKEN = process.env.FOODICS_API_TOKEN!;
+const FOODICS_SANDBOX_BASE_URL = process.env.FOODICS_SANDBOX_BASE_URL;
+const FOODICS_SANDBOX_API_TOKEN = process.env.FOODICS_SANDBOX_API_TOKEN;
 
 function backoffMs(attempts: number): number {
   return Math.min(2 ** attempts * 1000, 5 * 60_000); // caps at 5 minutes
@@ -20,12 +22,14 @@ export async function processPendingSyncJobs() {
       nextAttemptAt: { lte: new Date() },
       claimedAt: null,
     },
+
     include: {
       order: {
         include: {
           products: { include: { options: true } },
           charges: true,
           payments: true,
+          branch: true, // NEW — needed to resolve order.branch.foodicsId in the payload builder
         },
       },
     },
@@ -43,12 +47,12 @@ export async function processPendingSyncJobs() {
 
     try {
       const payload = buildFoodicsOrderPayload(job.order as any);
-
-      const res = await fetch(`${FOODICS_API_BASE}/orders`, {
+      console.log(payload);
+      const res = await fetch(`${FOODICS_SANDBOX_BASE_URL}/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${FOODICS_API_TOKEN}`,
+          Authorization: `Bearer ${FOODICS_SANDBOX_API_TOKEN}`,
         },
         body: JSON.stringify(payload),
       });

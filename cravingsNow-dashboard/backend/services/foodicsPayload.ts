@@ -6,67 +6,69 @@ import {
   OrderProductOption,
   OrderCharge,
   OrderPayment,
+  Branch,
 } from "../generated/prisma/client";
 
 type FullOrder = Order & {
   products: (OrderProduct & { options: OrderProductOption[] })[];
   charges: OrderCharge[];
   payments: OrderPayment[];
+  branch: Branch;
 };
 
 export function buildFoodicsOrderPayload(order: FullOrder) {
   return {
     type: mapOrderType(order.type),
-    source: mapOrderSource(order.source),
-    status: mapOrderStatus(order.status),
-    guests: order.guests,
-    kitchen_notes: order.kitchenNotes ?? "",
-    customer_notes: order.customerNotes ?? "",
-    business_date: order.businessDate.toISOString().split("T")[0],
-    subtotal_price: order.subtotalPrice,
-    discount_amount: order.discountAmount,
-    rounding_amount: order.roundingAmount,
-    total_price: order.totalPrice,
-    tax_exclusive_discount_amount: order.taxExclusiveDiscountAmount,
-    branch_id: order.branchId, // must be Foodics' branch ID, not your internal one — confirm this mapping exists
-    creator_id: order.creatorId ?? undefined,
-    customer_id: order.customerId ?? undefined,
-    customer_address_id: order.customerAddressId ?? undefined,
-    coupon_code: undefined, // Foodics wants the code, not couponId — needs a reverse lookup if you only stored couponId
-    due_at: order.dueAt ? formatFoodicsDate(order.dueAt) : undefined,
+    // source: mapOrderSource(order.source),
+    // status: mapOrderStatus(order.status),
+    // guests: order.guests,
+    // kitchen_notes: order.kitchenNotes ?? "",
+    // customer_notes: order.customerNotes ?? "",
+    // business_date: order.businessDate.toISOString().split("T")[0],
+    // subtotal_price: order.subtotalPrice,
+    // discount_amount: order.discountAmount,
+    // rounding_amount: order.roundingAmount,
+    // total_price: order.totalPrice,
+    // tax_exclusive_discount_amount: order.taxExclusiveDiscountAmount,
+    branch_id: order.branch.foodicsId, // must be Foodics' branch ID, not your internal one — confirm this mapping exists
+    // creator_id: order.creatorId ?? undefined,
+    // customer_id: order.customerId ?? undefined,
+    // customer_address_id: order.customerAddressId ?? undefined,
+    // coupon_code: undefined, // Foodics wants the code, not couponId — needs a reverse lookup if you only stored couponId
+    // due_at: order.dueAt ? formatFoodicsDate(order.dueAt) : undefined,
 
-    payments: order.payments.map((p) => ({
-      payment_method_id: p.paymentMethodId,
-      amount: p.amount,
-      tips: (p as any).tips ?? 0, // add `tips` to OrderPayment if not already present
-      meta: {},
-    })),
+    // payments: order.payments.map((p) => ({
+    //   payment_method_id: p.paymentMethodId,
+    //   amount: p.amount,
+    //   tips: (p as any).tips ?? 0, // add `tips` to OrderPayment if not already present
+    //   meta: {},
+    // })),
 
-    charges: order.charges.map((c) => ({
-      charge_id: c.chargeId,
-      taxes: [], // needs OrderChargeTax lookup once loaded
-    })),
+    // charges: order.charges.map((c) => ({
+    //   charge_id: c.chargeId,
+    //   taxes: [], // needs OrderChargeTax lookup once loaded
+    // })),
 
     products: order.products.map((p) => ({
-      product_id: p.productId,
+      product_id: p.foodicsId,
       quantity: p.quantity,
       unit_price: p.unitPrice,
-      total_price: p.totalPrice,
-      discount_amount: p.discountAmount,
-      tax_exclusive_discount_amount: p.taxExclusiveDiscountAmount,
-      tax_exclusive_unit_price: p.taxExclusiveUnitPrice,
-      tax_exclusive_total_price: p.taxExclusiveTotalPrice,
-      kitchen_notes: p.kitchenNotes ?? "",
-      taxes: [], // needs OrderProductTax lookup once loaded
-      options: p.options.map((o) => ({
-        modifier_option_id: o.modifierOptionId,
+      // total_price: p.totalPrice,
+      // discount_amount: p.discountAmount,
+      // tax_exclusive_discount_amount: p.taxExclusiveDiscountAmount,
+      // tax_exclusive_unit_price: p.taxExclusiveUnitPrice,
+      // tax_exclusive_total_price: p.taxExclusiveTotalPrice,
+      // kitchen_notes: p.kitchenNotes ?? "",
+      // taxes: [], // needs OrderProductTax lookup once loaded
+      options: (p.options ?? []).map((o) => ({
+        modifier_option_id: o.foodicsId,
         quantity: o.quantity,
-        partition: o.partition ?? 1,
+        // partition: o.partition ?? 1,
         unit_price: o.unitPrice,
-        total_price: o.totalPrice,
-        tax_exclusive_unit_price: o.taxExclusiveUnitPrice ?? o.unitPrice,
-        tax_exclusive_total_price: o.taxExclusiveTotalPrice ?? o.totalPrice,
-        taxes: [], // needs OrderProductOptionTax lookup once loaded
+        // total_price: o.totalPrice,
+        // tax_exclusive_unit_price: o.taxExclusiveUnitPrice ?? o.unitPrice,
+        // tax_exclusive_total_price: o.taxExclusiveTotalPrice ?? o.totalPrice,
+        // taxes: [], // needs OrderProductOptionTax lookup once loaded
       })),
     })),
   };

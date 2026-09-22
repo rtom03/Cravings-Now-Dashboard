@@ -1,3 +1,4 @@
+import { upsertGroupProducts } from "../../syncFromFoodics/group";
 import { prisma } from "../../utils/db";
 import {
   BN_CATEGORIES,
@@ -22,8 +23,8 @@ export const syncGroupProducts = async (id: string) => {
   const groups = await getGroupsProductsById(id);
   const products = groups.products;
   for (const prd of products) {
-    console.log(prd);
-    // await upsertGroupProducts(prd);
+    // console.log(prd);
+    await upsertGroupProducts(prd);
   }
   return groups.length;
 };

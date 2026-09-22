@@ -1,27 +1,25 @@
-// types/order.ts
+// types/order.ts — extend CreateOrderInput
 export interface CreateOrderInput {
-  branchId: string;
   customerId?: string;
   customerAddressId?: string;
-  guests: number;
-  kitchenNotes?: string;
-  customerNotes?: string;
-  couponCode?: string; // resolved to a couponId server-side, per the earlier flag
-  dueAt?: string; // ISO string
+  location: { latitude: number; longitude: number };
+  couponCode?: string;
+  dueAt?: string;
 
   products: Array<{
-    productId: string; // foodicsId of the product — this is what Foodics needs
+    productId: string;
+    foodicsId?: string;
+    groupName: string | null; // NEW — which brand this line belongs to, drives the split
     quantity: number;
     kitchenNotes?: string;
     options: Array<{
       modifierOptionId: string;
       quantity: number;
+      foodicsId?: string;
     }>;
   }>;
 
-  charges: Array<{
-    chargeId: string;
-  }>;
+  charges: Array<{ chargeId: string }>; // stays customer-order-level only, per your instruction
 
   payment: {
     paymentMethodId: string;
