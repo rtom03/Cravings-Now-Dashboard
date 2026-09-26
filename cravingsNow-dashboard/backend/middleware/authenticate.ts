@@ -7,7 +7,10 @@ export const authenticate = (
   res: Response,
   next: NextFunction,
 ) => {
-  const token = req.cookies?.token;
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : req.cookies?.token;
 
   if (!token) {
     return res.status(401).json({
@@ -19,7 +22,6 @@ export const authenticate = (
 
   if (!jwtSecret) {
     console.error("JWT_SECRET is not configured");
-
     return res.status(500).json({
       message: "Authentication configuration error",
     });
@@ -27,9 +29,7 @@ export const authenticate = (
 
   try {
     const payload = jwt.verify(token, jwtSecret) as AuthPayload;
-
     req.user = payload;
-
     next();
   } catch (error) {
     return res.status(401).json({
@@ -52,6 +52,5 @@ export const authorize =
         message: "Forbidden",
       });
     }
-
     next();
   };

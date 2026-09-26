@@ -21,13 +21,14 @@ adminRoutes.get("/branches", authenticate, authorize("ADMIN"), getBranches);
 adminRoutes.get("/branches/:id", authenticate, authorize("ADMIN"), getBranch);
 adminRoutes.get(
   "/groups",
-  // authenticate, authorize("ADMIN"),
+  // authenticate,
+  // authorize("ADMIN", "CUSTOMER"),
   getGroups,
 );
 adminRoutes.get(
   "/groups/products/:id",
-  // authenticate,
-  // authorize("ADMIN"),
+  authenticate,
+  authorize("ADMIN", "CUSTOMER"),
   getProductsByGroupName,
 );
 

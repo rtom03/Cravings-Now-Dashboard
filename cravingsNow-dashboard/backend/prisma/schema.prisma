@@ -34,10 +34,12 @@ model User {
 model Customer {
   id       String  @id @default(uuid())
   name     String?
-  password String
+  password String?
   phone    String?
   email    String?
-  dialCode Int?    @map("dial_code")
+  googleId String? @unique @map("google_id") // Google's `sub` claim
+
+  dialCode Int? @map("dial_code")
 
   gender    Int? // 1 = Male, 2 = Female — small enough to enum if you'd like, flag if so
   birthDate DateTime? @map("birth_date") @db.Date
@@ -67,22 +69,24 @@ model Customer {
 }
 
 model Branch {
-  id                    String  @id @unique @default(uuid())
-  foodicsId             String  @unique @map("foodics_id")
-  nameLocalized         String? @map("name_localized")
-  reference             String? @unique @map("reference")
-  name                  String
-  latitude              String?
-  longitude             String?
-  phone                 String?
-  openingFrom           String  @map("opening_from")
-  openingTo             String  @map("opening_to")
-  acceptsReservations   Boolean @default(false) @map("accepts_reservations")
-  address               String?
-  receiptFooter         String? @map("receipt_footer")
-  receiptHeader         String? @map("receipt_header")
-  reservationDuration   Int     @default(0) @map("reservation_duration")
-  reservationTimes      Json?   @map("reservation_times")
+  id                  String  @id @unique @default(uuid())
+  foodicsId           String  @unique @map("foodics_id")
+  nameLocalized       String? @map("name_localized")
+  reference           String? @unique @map("reference")
+  name                String
+  latitude            String?
+  longitude           String?
+  phone               String?
+  openingFrom         String  @map("opening_from")
+  openingTo           String  @map("opening_to")
+  acceptsReservations Boolean @default(false) @map("accepts_reservations")
+  address             String?
+  receiptFooter       String? @map("receipt_footer")
+  receiptHeader       String? @map("receipt_header")
+  reservationDuration Int     @default(0) @map("reservation_duration")
+  reservationTimes    Json?   @map("reservation_times")
+  paystackSubaccount  String? @map("paystack_subaccount") // e.g. "ACCT_xxxxxxxxxx"
+
   settings              Json
   // type                    Int
   inventoryEndOfDayTime String  @map("inventory_end_of_day_time")
@@ -169,6 +173,7 @@ model Group {
   name          String
   nameLocalized String?
   image         String?
+  logo          String?
   group         GroupProducts[]
 }
 
@@ -570,9 +575,6 @@ model Order {
   customerId String?   @map("customer_id")
   customer   Customer? @relation(fields: [customerId], references: [id])
 
-  customerAddressId String?          @map("customer_address_id")
-  customerAddress   CustomerAddress? @relation(fields: [customerAddressId], references: [id])
-
   discountId String?   @map("discount_id")
   discount   Discount? @relation(fields: [discountId], references: [id])
 
@@ -822,8 +824,7 @@ model CustomerOrderCharge {
 }
 
 model CustomerAddress {
-  id        String @id @default(uuid())
-  foodicsId String @unique
+  id String @id @default(uuid())
 
   name        String?
   description String?
@@ -834,8 +835,6 @@ model CustomerAddress {
 
   customerId String   @map("customer_id")
   customer   Customer @relation(fields: [customerId], references: [id])
-
-  order Order[]
 
   deliveryZoneId String?       @map("delivery_zone_id")
   deliveryZone   DeliveryZone? @relation(fields: [deliveryZoneId], references: [id])

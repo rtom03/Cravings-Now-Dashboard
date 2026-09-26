@@ -108,6 +108,28 @@ export async function createOrder(input: CreateOrderInput) {
     });
   }
 
+  const paystackSplit = {
+    type: "flat" as const,
+    currency: "NGN",
+    bearer_type: "account" as const,
+    subaccounts: await Promise.all(
+      builtOrders.map(async (built) => {
+        const branch = await prisma.branch.findUnique({
+          where: { id: built.branchId }, // the per-brand-per-location Branch, not an abstract Brand
+        });
+        if (!branch?.paystackSubaccount) {
+          throw new Error(
+            `Branch ${built.branchId} has no Paystack subaccount configured`,
+          );
+        }
+        return {
+          subaccount: branch.paystackSubaccount,
+          share: Math.round(built.totalPrice * 100), // kobo
+        };
+      }),
+    ),
+  };
+
   // --- Charges — untouched, stay at CustomerOrder level, never split ---
   const chargeIds = input.charges.map((c) => c.chargeId);
   const dbCharges = await prisma.charge.findMany({

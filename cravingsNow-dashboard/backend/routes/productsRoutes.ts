@@ -24,6 +24,6 @@ productsRoutes.patch(
   updateProduct,
 );
 
-productsRoutes.get("/", getProducts);
+productsRoutes.get("/", authenticate, getProducts);
 
 export default productsRoutes;
