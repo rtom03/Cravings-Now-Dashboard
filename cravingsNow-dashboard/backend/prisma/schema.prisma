@@ -71,6 +71,7 @@ model Customer {
 model Branch {
   id                  String  @id @unique @default(uuid())
   foodicsId           String  @unique @map("foodics_id")
+  foodicsSandBoxId    String?
   nameLocalized       String? @map("name_localized")
   reference           String? @unique @map("reference")
   name                String
@@ -111,7 +112,6 @@ model Branch {
   deliveryZones DeliveryZone[] @relation("BranchDeliveryZones")
   // discounts               BranchDiscount[] @relation("BranchDiscounts")
   promotions    Promotion[]    @relation("BranchPromotions")
-  charges       Charge[]       @relation("BranchCharges")
   discounts     Discount[]     @relation("DiscountBranches")
 
   orders                Order[]
@@ -180,6 +180,7 @@ model Group {
 model GroupProducts {
   id                           String    @id @default(uuid())
   foodicsId                    String    @unique
+  foodicsSandBoxId             String?
   sku                          String
   groupName                    String?
   barcode                      String?
@@ -211,6 +212,7 @@ model GroupProducts {
   categoryId            String?                @map("category_id")
   category              Category?              @relation(fields: [categoryId], references: [id])
   groupProductModifiers GroupProductModifier[]
+  orderProducts         OrderProduct[]
 }
 
 model Modifier {
@@ -231,8 +233,10 @@ model Modifier {
 }
 
 model ModifierOption {
-  id            String  @id @default(uuid())
-  foodicsId     String  @unique
+  id               String  @id @default(uuid())
+  foodicsId        String  @unique
+  foodicsSandBoxId String?
+
   sku           String  @unique
   name          String
   image         String?
@@ -397,8 +401,9 @@ model Tag {
 }
 
 model Discount {
-  id        String @id @default(uuid())
-  foodicsId String @unique
+  id               String  @id @default(uuid())
+  foodicsId        String  @unique
+  foodicsSandBoxId String?
 
   name                String
   nameLocalized       String?   @map("name_localized")
@@ -451,8 +456,9 @@ model DeliveryZone {
 }
 
 model TaxGroup {
-  id        String @id @default(uuid())
-  foodicsId String @unique
+  id               String  @id @default(uuid())
+  foodicsId        String  @unique
+  foodicsSandBoxId String?
 
   name          String
   nameLocalized String?         @map("name_localized")
@@ -460,7 +466,6 @@ model TaxGroup {
   // --- Relations ---
   products      GroupProducts[] @relation("ProductsTax")
   taxes         Tax[]           @relation("TaxGroupTaxes")
-  charge        Charge?
   createdAt     DateTime        @default(now()) @map("created_at")
   updatedAt     DateTime        @updatedAt @map("updated_at")
   deletedAt     DateTime?       @map("deleted_at")
@@ -476,8 +481,9 @@ model TaxGroup {
 }
 
 model Tax {
-  id        String @id @default(uuid())
-  foodicsId String @unique
+  id               String  @id @default(uuid())
+  foodicsId        String  @unique
+  foodicsSandBoxId String?
 
   name          String
   nameLocalized String? @map("name_localized")
@@ -494,36 +500,12 @@ model Tax {
   @@map("taxes")
 }
 
-model Charge {
-  id        String @id @default(uuid())
-  foodicsId String @unique
-
-  name          String
-  nameLocalized String?     @map("name_localized")
-  type          ChargeType? @map("type")
-  orderTypes    OrderType[] @map("order_types")
-  isAutoApplied Boolean?    @map("is_auto_applied")
-  value         Float
-  isOpenCharge  Boolean     @map("is_open_charge")
-
-  // --- Relations ---
-  taxGroupId          String?               @unique @map("tax_group_id")
-  taxGroup            TaxGroup?             @relation(fields: [taxGroupId], references: [id])
-  branches            Branch[]              @relation("BranchCharges")
-  orderCharge         OrderCharge[]
-  customerOrderCharge CustomerOrderCharge[]
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  @@map("charges")
-}
-
 //  {<---------- Order Model ---------->}
 model Order {
-  id             String      @id @default(uuid())
-  foodicsId      String?     @unique
+  id               String  @id @default(uuid())
+  foodicsId        String? @unique
+  foodicsSandBoxId String?
+
   reference      String?
   referenceX     String?     @map("reference_x")
   appId          String?     @map("app_id")
@@ -626,37 +608,34 @@ model OrderTax {
 }
 
 model OrderProduct {
-  id                         String          @id @default(uuid())
+  id                         String    @id @default(uuid())
   foodicsId                  String?
-  discountType               Int?            @map("discount_type")
+  foodicsSandBoxId           String?
+  discountType               Int?      @map("discount_type")
   quantity                   Int
-  returnedQuantity           Int?            @map("returned_quantity")
-  unitPrice                  Float           @map("unit_price")
-  discountAmount             Float           @map("discount_amount")
-  totalPrice                 Float           @map("total_price")
-  totalCost                  Float           @map("total_cost")
-  taxExclusiveDiscountAmount Float           @map("tax_exclusive_discount_amount")
-  taxExclusiveUnitPrice      Float           @map("tax_exclusive_unit_price")
-  taxExclusiveTotalPrice     Float           @map("tax_exclusive_total_price")
-  status                     Product_Status? @default(Pending)
-  isIngredientsWasted        Boolean         @map("is_ingredients_wasted")
-  isIngredientsReturned      Boolean         @map("is_ingredients_returned")
-  delayInSeconds             Int?            @map("delay_in_seconds")
-  kitchenNotes               String?         @map("kitchen_notes")
+  returnedQuantity           Int?      @map("returned_quantity")
+  unitPrice                  Float     @map("unit_price")
+  discountAmount             Float     @map("discount_amount")
+  totalPrice                 Float     @map("total_price")
+  totalCost                  Float     @map("total_cost")
+  taxExclusiveDiscountAmount Float     @map("tax_exclusive_discount_amount")
+  taxExclusiveUnitPrice      Float     @map("tax_exclusive_unit_price")
+  taxExclusiveTotalPrice     Float     @map("tax_exclusive_total_price")
+  kitchenNotes               String?   @map("kitchen_notes")
   meta                       Json?
-  addedAt                    DateTime        @map("added_at")
-  closedAt                   DateTime?       @map("closed_at")
-  voidTag                    Json?           @map("void_tag") // no field spec given yet — placeholder JSON pending spec
+  addedAt                    DateTime  @map("added_at")
+  closedAt                   DateTime? @map("closed_at")
+  voidTag                    Json?     @map("void_tag") // no field spec given yet — placeholder JSON pending spec
 
   // --- Relations ---
   voidReasonId String? @map("void_reason_id")
-
-  voidReason Reason? @relation("OrderProductVoidReason", fields: [voidReasonId], references: [id])
+  voidReason   Reason? @relation("OrderProductVoidReason", fields: [voidReasonId], references: [id])
 
   orderId String @map("order_id")
   order   Order  @relation(fields: [orderId], references: [id])
 
-  productId String @map("product_id")
+  productId String         @map("product_id")
+  product   GroupProducts? @relation(fields: [productId], references: [id])
 
   discountId String?   @map("discount_id")
   discount   Discount? @relation("OrderProductDiscount", fields: [discountId], references: [id])
@@ -694,6 +673,7 @@ model OrderProductTax {
 model OrderProductOption {
   id                         String    @id @default(uuid())
   foodicsId                  String?
+  foodicsSandBoxId           String?
   quantity                   Int
   partition                  Int?
   unitPrice                  Float     @map("unit_price")
@@ -709,9 +689,10 @@ model OrderProductOption {
   orderProductId String       @map("order_product_id")
   orderProduct   OrderProduct @relation(fields: [orderProductId], references: [id])
 
-  modifierOptionId String                  @map("modifier_option_id")
-  modifierOption   ModifierOption          @relation(fields: [modifierOptionId], references: [id])
-  taxes            OrderProductOptionTax[]
+  modifierOptionId String         @map("modifier_option_id")
+  modifierOption   ModifierOption @relation(fields: [modifierOptionId], references: [id])
+
+  taxes OrderProductOptionTax[]
 
   @@map("order_product_options")
 }
@@ -737,8 +718,7 @@ model OrderCharge {
   orderId String @map("order_id")
   order   Order  @relation(fields: [orderId], references: [id])
 
-  chargeId String  @map("charge_id")
-  charge   Charge? @relation(fields: [chargeId], references: [id])
+  chargeId String @map("charge_id")
 
   taxes OrderChargeTax[]
 
@@ -779,7 +759,8 @@ model OrderPayment {
 }
 
 model CustomerOrder {
-  id String @id @default(uuid())
+  id             String  @id @default(uuid())
+  idempotencyKey String? @unique
 
   customerId String?   @map("customer_id")
   customer   Customer? @relation(fields: [customerId], references: [id])
@@ -795,8 +776,13 @@ model CustomerOrder {
 
   dueAt DateTime? @map("due_at")
 
-  orders  Order[] // one per brand present in the cart
-  charges CustomerOrderCharge[] // delivery fee etc. — lives here only, never split per brand
+  orders          Order[] // one per brand present in the cart
+  charges         CustomerOrderCharge[] // delivery fee etc. — lives here only, never split per brand
+  requestHash     String?
+  paystackAuthUrl String?
+
+  paymentStatus     PaymentStatus @default(Pending) @map("payment_status")
+  paystackReference String?       @unique @map("paystack_reference")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -1001,22 +987,6 @@ model OrderSyncJob {
   @@map("order_sync_jobs")
 }
 
-enum SyncStatus {
-  Pending
-  Processing
-  Synced
-  Failed
-}
-
-enum PaymentMethodType {
-  CASH // 1
-  CARD // 2
-  OTHER // 3
-  GIFT_CARD // 4
-  HOUSE_ACCOUNT // 5
-  THIRD_PARTY // 7
-}
-
 model Reason {
   id        String  @id @default(uuid())
   foodicsId String? @unique @map("foodics_id") // sync join key — nullable until this becomes a Foodics-owned lookup you actively sync
@@ -1031,6 +1001,62 @@ model Reason {
   deletedAt DateTime? @map("deleted_at")
 
   @@map("reasons")
+}
+
+model Charge {
+  id   String @id @default(uuid())
+  name String // "Delivery Fee", "Payment Processing Fee"
+
+  type        ChargeType
+  calculation ChargeCalculation
+
+  value     Float // either a flat amount (Fixed) or a percentage (Percentage) — interpreted per `calculation`
+  flatAddOn Float? @map("flat_add_on") // e.g. Paystack's ₦100 flat component on top of the percentage — null for simple charges
+
+  minAmount Float? @map("min_amount") // e.g. "waived under ₦2,500" — null means no threshold
+  capAmount Float? @map("cap_amount") // e.g. "capped at ₦2,000" — null means no cap
+
+  isActive Boolean @default(true) @map("is_active")
+
+  orderCharges CustomerOrderCharge[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("charges")
+}
+
+enum ChargeType {
+  Delivery
+  Service
+  ProcessingFee
+}
+
+enum ChargeCalculation {
+  Fixed // a flat naira amount, e.g. ₦500 delivery fee
+  Percentage // a % of the order total, e.g. Paystack's 1.5%
+}
+
+enum PaymentStatus {
+  Pending
+  Paid
+  Failed
+}
+
+enum SyncStatus {
+  Pending
+  Processing
+  Synced
+  Failed
+}
+
+enum PaymentMethodType {
+  CASH // 1
+  CARD // 2
+  OTHER // 3
+  GIFT_CARD // 4
+  HOUSE_ACCOUNT // 5
+  THIRD_PARTY // 7
 }
 
 enum ConditionType {
@@ -1068,11 +1094,6 @@ enum OrderType {
   PICK_UP // 2
   DELIVERY // 3
   DRIVE_THRU // 4
-}
-
-enum ChargeType {
-  AMOUNT // 1
-  PERCENTAGE // 2
 }
 
 enum TableStatus {

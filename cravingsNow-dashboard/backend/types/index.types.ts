@@ -84,13 +84,6 @@ interface FoodicsGroupsProducts extends FoodicsProductRaw {
   group_name: string;
 }
 
-interface FdGroup {
-  id: string;
-  foodics_id: string;
-  name: string;
-  name_localized: string;
-  image: string | null;
-}
 type AuthPayload = {
   userId: string;
   role: "ADMIN" | "STORE" | "CUSTOMER";
@@ -158,7 +151,6 @@ export {
   FoodicsProductRaw,
   FoodicsCategoryRaw,
   FoodicsGroupsProducts,
-  FdGroup,
   AuthPayload,
   FoodicsModifier,
   FoodicsModifierOption,

@@ -35,6 +35,7 @@ export interface Product {
   barcode: string | null;
   name: string;
   nameLocalized: string | null;
+  groupName: string;
   description?: string | null;
   image: string | null;
   isActive: boolean;

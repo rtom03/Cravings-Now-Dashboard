@@ -1,6 +1,9 @@
 import axios from "axios";
-import { PaystackCustomer, PaystackInitTrasaction } from "../../types/paystack";
-import { CustomerOrder } from "../../generated/prisma/client";
+import type {
+  PaystackCustomer,
+  PaystackInitTransaction,
+  PaystackInitResponse,
+} from "../../types/paystack";
 
 const PAYSTACK_TEST_SECRET_KEY = process.env.PAYSTACK_TEST_SECRET_KEY;
 const CALL_BACK_URL = process.env.CALL_BACK_URL;
@@ -13,54 +16,55 @@ export const paystack = axios.create({
   },
 });
 
+const toError = (context: string, error: any) => {
+  const detail = error.response?.data?.message || error.message;
+  return new Error(`${context}: ${detail}`);
+};
+
 export const createPaystackCustomer = async ({
   email,
   firstName,
   lastName,
   phone,
 }: PaystackCustomer) => {
-  const { data } = await paystack.post("/customer", {
-    email,
-    first_name: firstName,
-    last_name: lastName,
-    phone,
-  });
-  return data.data; // returns customer object with customer_code
+  try {
+    const { data } = await paystack.post("/customer", {
+      email,
+      first_name: firstName,
+      last_name: lastName,
+      phone,
+    });
+    if (!data.status) throw new Error(data.message);
+    return data.data; // customer object incl. customer_code
+  } catch (error) {
+    throw toError("Paystack create customer failed", error);
+  }
 };
 
 export const initializePaystackTransaction = async ({
-  customerOrder,
+  amountKobo,
   customerEmail,
+  reference,
   split,
-}: PaystackInitTrasaction) => {
+}: PaystackInitTransaction): Promise<PaystackInitResponse> => {
   try {
     const { data } = await paystack.post("/transaction/initialize", {
       email: customerEmail,
-      amount: Math.round(customerOrder.totalPrice * 100), // kobo
-      reference: customerOrder.id, // ties Paystack's transaction directly to your own order — your idempotency key
-      split,
+      amount: Math.round(amountKobo), // already in kobo
+      reference,
       currency: "NGN",
-      channels: [
-        "card",
-        "bank",
-        "apple_pay",
-        "ussd",
-        "qr",
-        "mobile_money",
-        "bank_transfer",
-        "eft",
-        "capitec_pay",
-        "payattitude",
-      ],
       callback_url: `${CALL_BACK_URL}/payment/success`,
-      split_code: "",
-      subaccount: "",
-      transaction_charge: "",
-      bearer: "",
+      ...(split && { split }), // only send when provided
+      // channels omitted -> uses your dashboard settings. If you want to restrict:
+      // channels: ["card", "bank", "ussd", "qr", "bank_transfer"],
     });
 
-    return data.data;
-  } catch (error: any) {
-    console.log(error.response?.data || error.message);
+    if (!data.status) {
+      throw new Error(data.message);
+    }
+
+    return data.data as PaystackInitResponse;
+  } catch (error) {
+    throw toError("Paystack initialize failed", error);
   }
 };

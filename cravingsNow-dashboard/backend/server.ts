@@ -5,8 +5,9 @@ import express from "express";
 import morgan from "morgan";
 import { connectDB } from "./utils/db";
 import routes from "./routes";
+import { paystackWebhookHandler } from "./controller/paystackWebhookHandler";
 // import "./jobs/reactivateProduct";
-import "./jobs/scheduleFoodicsSync";
+// import "./jobs/scheduleFoodicsSync";
 dotenv.config();
 
 connectDB();
@@ -25,6 +26,13 @@ app.use(
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   }),
+);
+
+// app.ts
+app.post(
+  "/api/webhooks/paystack",
+  express.raw({ type: "application/json" }),
+  paystackWebhookHandler,
 );
 
 app.use(express.json());

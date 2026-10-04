@@ -30,7 +30,9 @@ export function buildFoodicsOrderPayload(order: FullOrder) {
     // rounding_amount: order.roundingAmount,
     // total_price: order.totalPrice,
     // tax_exclusive_discount_amount: order.taxExclusiveDiscountAmount,
-    branch_id: order.branch.foodicsId, // must be Foodics' branch ID, not your internal one — confirm this mapping exists
+    // branch_id: order.branch.foodicsId, // Foodics' branch ID,
+    branch_id: order.branch.foodicsSandBoxId, // Foodics' branch ID
+
     // creator_id: order.creatorId ?? undefined,
     // customer_id: order.customerId ?? undefined,
     // customer_address_id: order.customerAddressId ?? undefined,
@@ -50,7 +52,8 @@ export function buildFoodicsOrderPayload(order: FullOrder) {
     // })),
 
     products: order.products.map((p) => ({
-      product_id: p.foodicsId,
+      // product_id: p.foodicsId,
+      product_id: p.foodicsSandBoxId,
       quantity: p.quantity,
       unit_price: p.unitPrice,
       // total_price: p.totalPrice,
@@ -61,7 +64,8 @@ export function buildFoodicsOrderPayload(order: FullOrder) {
       // kitchen_notes: p.kitchenNotes ?? "",
       // taxes: [], // needs OrderProductTax lookup once loaded
       options: (p.options ?? []).map((o) => ({
-        modifier_option_id: o.foodicsId,
+        // modifier_option_id: o.foodicsId,
+        modifier_option_id: o.foodicsSandBoxId,
         quantity: o.quantity,
         // partition: o.partition ?? 1,
         unit_price: o.unitPrice,

@@ -1,4 +1,5 @@
-import { upsertBranch } from "../../controller/branchController";
+import { FoodicsBranch } from "../../types/index.types";
+import { prisma } from "../../utils/db";
 import foodicsClient from "./client";
 
 export const getBranchesFromFoodics = async () => {
@@ -26,28 +27,44 @@ export const syncBranches = async () => {
     await upsertBranch(branch);
   }
 
-  return branches.length;
+  console.log("DONE");
 };
-// export const syncBranch = async (foodicsBranch: FoodicsBranch) => {
-//   const branch = await upsertBranch(foodicsBranch);
 
-//   await syncBranchTags(branch.id, foodicsBranch.tags);
-
-//   await syncBranchProducts(branch.id, foodicsBranch.products);
-
-//   await syncBranchDiscounts(branch.id, foodicsBranch.discounts);
-
-//   await syncBranchPromotions(branch.id, foodicsBranch.promotions);
-
-//   await syncBranchDevices(branch.id, foodicsBranch.devices);
-
-//   await syncBranchSections(branch.id, foodicsBranch.sections);
-
-//   await syncBranchCharges(branch.id, foodicsBranch.charges);
-
-//   await syncBranchDeliveryZones(branch.id, foodicsBranch.delivery_zones);
-
-//   await syncBranchUsers(branch.id, foodicsBranch.users);
-
-//   return branch;
-// };
+const upsertBranch = async (branch: FoodicsBranch) => {
+  return prisma.branch.upsert({
+    where: {
+      foodicsId: branch.id,
+    },
+    update: {
+      name: branch.name,
+      nameLocalized: branch.name_localized,
+      reference: branch.reference,
+      phone: branch.phone,
+      latitude: branch.latitude,
+      longitude: branch.longitude,
+      openingFrom: branch.opening_from,
+      openingTo: branch.opening_to,
+      receivesOnlineOrders: branch.receives_online_orders,
+    },
+    create: {
+      foodicsId: branch.id,
+      name: branch.name,
+      nameLocalized: branch.name_localized,
+      reference: branch.reference,
+      phone: branch.phone,
+      latitude: branch.latitude,
+      longitude: branch.longitude,
+      openingFrom: branch.opening_from,
+      openingTo: branch.opening_to,
+      inventoryEndOfDayTime: branch.inventory_end_of_day_time,
+      receiptHeader: branch.receipt_header,
+      receiptFooter: branch.receipt_footer,
+      address: branch.address,
+      receivesOnlineOrders: branch.receives_online_orders,
+      reservationTimes: branch.reservation_times,
+      reservationDuration: branch.reservation_duration,
+      acceptsReservations: branch.accepts_reservations,
+      settings: branch.settings,
+    },
+  });
+};

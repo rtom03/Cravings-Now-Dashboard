@@ -4,6 +4,15 @@ import { IDParams } from "./branchController";
 import { syncTaxGroup } from "../syncFromFoodics/taxGroup";
 import { Product } from "../types/group";
 import { syncGrpEp } from "../syncFromFoodics/group";
+
+import { syncCategoriesLiveToSandbox } from "../services/foodicsSandbox/category";
+import { syncProductLiveToSandbox } from "../services/foodicsSandbox/products";
+import { syncAllProductModifiers } from "../services/foodics/modifier.service";
+import { appendCatIdGrpPrd } from "../services/foodics/groups.service";
+import { syncCategories } from "../services/foodics/categories.service";
+import { syncSandboxIdsByName } from "../services/sandBox/productToDB";
+import { syncBranches } from "../services/foodics/branches.service";
+import { syncModifierOptionsForModifier } from "../services/sandBox/options";
 // import { syncAllProductModifiers } from "../services/foodics/modifier.service";
 // import { syncBranches } from "../services/foodics/branches.service";
 
@@ -31,6 +40,7 @@ const mapProduct = (product: any): Product => {
     meta: product.meta,
     reactivateAt: product.reactivateAt,
     category: product?.category,
+    groupName: product.groupName,
     modifiers: product.groupProductModifiers.map(
       (groupProductModifier: any) => ({
         id: groupProductModifier.modifier.id,
@@ -180,5 +190,13 @@ const getProducts = async (req: Request, res: Response) => {
 // syncTaxGroup();
 // syncTax();
 // syncGrpEp();
+// syncGroup("9c1e4e06-5000-4603-ab30-b0ca5f146b51");
+
+// syncProductLiveToSandbox("Scoopd");
+// syncCategoriesLiveToSandbox();
+// appendCatIdGrpPrd();
+// syncCategories();
+// syncSandboxIdsByName();
+// syncModifierOptionsForModifier("a2ce85b6-3514-4005-91b6-45c8f4281fd7");
 
 export { getGroups, getBranchByGroupName, getProductsByGroupName, getProducts };

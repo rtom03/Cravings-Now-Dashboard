@@ -13,24 +13,14 @@ import {
 
 const adminRoutes = express.Router();
 
-adminRoutes.post("/sign-up", authenticate, authorize("ADMIN"), createAdmin);
+adminRoutes.post("/sign-up", createAdmin);
 adminRoutes.post("/sign-in", loginAdmin);
 
 /// branch
 adminRoutes.get("/branches", authenticate, authorize("ADMIN"), getBranches);
 adminRoutes.get("/branches/:id", authenticate, authorize("ADMIN"), getBranch);
-adminRoutes.get(
-  "/groups",
-  // authenticate,
-  // authorize("ADMIN", "CUSTOMER"),
-  getGroups,
-);
-adminRoutes.get(
-  "/groups/products/:id",
-  authenticate,
-  authorize("ADMIN", "CUSTOMER"),
-  getProductsByGroupName,
-);
+adminRoutes.get("/groups", getGroups);
+adminRoutes.get("/groups/products/:id", getProductsByGroupName);
 
 adminRoutes.get(
   "/groups/branches/:id",

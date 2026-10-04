@@ -6,60 +6,10 @@ import { parsePrice } from "../lib/price";
 import { findNearestBranch } from "./locationServices";
 import { initializePaystackTransaction } from "./paystack/paystack";
 import { calculateProcessingFeeKobo } from "./chargeCalc";
-import { Order, Prisma } from "../generated/prisma/client";
+import { Prisma } from "../generated/prisma/client";
 import { randomUUID, createHash } from "crypto";
 
 export async function createOrder(input: CreateOrderInput) {
-  const key = input.idempotencyKey; // controller: req.header("Idempotency-Key")
-  const requestHash = createHash("sha256")
-    .update(
-      JSON.stringify({
-        c: input.customerId,
-        a: input.customerAddressId,
-        k: input.couponCode ?? null,
-        p: [...input.products]
-          .map((p) => ({
-            id: p.productId,
-            q: p.quantity,
-            o: (p.options ?? [])
-              .map((o) => `${o.modifierOptionId}:${o.quantity}`)
-              .sort(),
-          }))
-          .sort((x, y) => x.id.localeCompare(y.id)),
-      }),
-    )
-    .digest("hex");
-
-  if (key) {
-    const existing = await prisma.customerOrder.findUnique({
-      where: { idempotencyKey: key },
-    });
-    if (existing) return replay(existing, requestHash);
-  }
-
-  function replay(
-    existing: {
-      requestHash: string | null;
-      paystackAuthUrl: string | null;
-    } & Record<string, any>,
-    hash: string,
-  ) {
-    if (existing.requestHash !== hash)
-      throw Object.assign(
-        new Error("Idempotency key reused with a different request"),
-        { status: 422 },
-      );
-    if (!existing.paystackAuthUrl)
-      throw Object.assign(
-        new Error("Order is still being processed, retry shortly"),
-        { status: 409 },
-      );
-    return {
-      ...existing,
-      authorizationUrl: existing.paystackAuthUrl,
-      replayed: true,
-    };
-  }
   // --- Resolve coupon ---
   let couponId: string | undefined;
 
@@ -196,6 +146,7 @@ export async function createOrder(input: CreateOrderInput) {
   };
 
   // --- Charges — stay at CustomerOrder level, never split ---
+
   const preFeeSubtotal = builtOrders.reduce((sum, o) => sum + o.totalPrice, 0);
   const preFeeSubtotalKobo = Math.round(preFeeSubtotal * 100);
   const processingFeeKobo = calculateProcessingFeeKobo(
@@ -214,146 +165,125 @@ export async function createOrder(input: CreateOrderInput) {
   const totalKobo = preFeeSubtotalKobo + processingFeeKobo;
   const customerOrderTotal = totalKobo / 100; // naira, for storage only
 
-  const customerOrderId = randomUUID();
-  const orderRows: any[] = [],
-    jobRows: any[] = [],
-    productRows: any[] = [],
-    productTaxRows: any[] = [],
-    optionRows: any[] = [],
-    optionTaxRows: any[] = [];
+  // console.log(customerOrderTotal, totalKobo);
 
-  for (const built of builtOrders) {
-    const orderId = randomUUID();
-    orderRows.push({
-      id: orderId,
-      customerOrderId,
-      type: "DELIVERY",
-      source: "API",
-      status: "Pending",
-      guests: 1,
-      kitchenNotes: "",
-      customerNotes: "",
-      businessDate: new Date(),
-      subtotalPrice: built.subtotal,
-      discountAmount: 0,
-      roundingAmount: 0,
-      totalPrice: built.totalPrice,
-      taxExclusiveDiscountAmount: 0,
-      branchId: built.branchId,
-      customerId: input.customerId!,
-    });
-    jobRows.push({ orderId });
-
-    for (const line of built.productLines) {
-      const opId = randomUUID();
-      productRows.push({
-        id: opId,
-        orderId,
-        productId: line.productId,
-        foodicsId: line.foodicsId,
-        foodicsSandBoxId: line.foodicsSandBoxId,
-        quantity: line.quantity,
-        unitPrice: line.unitPrice,
-        totalPrice: line.totalPrice,
-        totalCost: 0,
-        discountAmount: 0,
-        taxExclusiveDiscountAmount: 0,
-        taxExclusiveUnitPrice: line.taxExclusiveUnitPrice,
-        taxExclusiveTotalPrice: line.taxExclusiveTotalPrice,
-        addedAt: new Date(),
+  // --- One transaction: CustomerOrder + one Order per brand + one
+  // OrderSyncJob per Order, all committed together or not at all ---
+  let customerOrder;
+  try {
+    customerOrder = await prisma.$transaction(
+      async (tx) => {
+        const created = await tx.customerOrder.create({
+          data: {
+            customerId: input.customerId,
+            customerAddressId: input.customerAddressId,
+            subtotalPrice: customerOrderSubtotal,
+            totalPrice: customerOrderTotal,
+            couponId,
+            dueAt: input.dueAt ? new Date(input.dueAt) : undefined,
+            charges: { create: chargeLines },
+          },
+        });
+        console.log(builtOrders.length);
+        for (const built of builtOrders) {
+          const order = await tx.order.create({
+            data: {
+              customerOrderId: created.id,
+              type: "DELIVERY",
+              source: "API",
+              status: "Pending",
+              guests: 1,
+              kitchenNotes: "",
+              customerNotes: "",
+              businessDate: new Date(),
+              subtotalPrice: built.subtotal,
+              discountAmount: 0,
+              roundingAmount: 0,
+              totalPrice: built.totalPrice,
+              taxExclusiveDiscountAmount: 0,
+              branchId: built.branchId, // local Branch.id — satisfies the orders_branch_id_fkey constraint, // the RESOLVED, brand-specific Foodics id — never input.branchId directly
+              customerId: input.customerId,
+              customerAddressId: input.customerAddressId,
+              products: {
+                create: built.productLines.map((line) => ({
+                  productId: line.productId,
+                  foodicsId: line.foodicsId,
+                  foodicsSandBoxId: line.foodicsSandBoxId,
+                  quantity: line.quantity,
+                  unitPrice: line.unitPrice,
+                  totalPrice: line.totalPrice,
+                  totalCost: 0,
+                  discountAmount: 0,
+                  taxExclusiveDiscountAmount: 0,
+                  taxExclusiveUnitPrice: line.taxExclusiveUnitPrice,
+                  taxExclusiveTotalPrice: line.taxExclusiveTotalPrice,
+                  status: "Pending",
+                  isIngredientsWasted: false,
+                  isIngredientsReturned: false,
+                  addedAt: new Date(),
+                  taxes: { create: line.tax },
+                  options: {
+                    create: (line.options ?? []).map((opt) => ({
+                      modifierOptionId: opt.modifierOptionId,
+                      foodicsId: opt.foodicsId,
+                      foodicsSandBoxId: opt.foodicsSandBoxId,
+                      quantity: opt.quantity,
+                      unitPrice: opt.unitPrice,
+                      totalPrice: opt.totalPrice,
+                      totalCost: 0,
+                      taxExclusiveUnitPrice: opt.taxExclusiveUnitPrice,
+                      taxExclusiveTotalPrice: opt.taxExclusiveTotalPrice,
+                      taxes: { create: opt.tax },
+                    })),
+                  },
+                })),
+              },
+            },
+          });
+          await tx.orderSyncJob.create({ data: { orderId: order.id } });
+        }
+        return created;
+      },
+      {
+        timeout: 15000, // 15s — generous buffer for multi-brand carts with several nested writes
+        maxWait: 5000, // how long to wait for a connection from the pool before even starting
+      },
+    );
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2028"
+    ) {
+      console.error("[createOrder] tx timeout", e.meta);
+      throw Object.assign(new Error("Order creation timed out, please retry"), {
+        status: 503,
       });
-      productTaxRows.push({ orderProductId: opId, ...line.tax });
-
-      for (const opt of line.options ?? []) {
-        const optId = randomUUID();
-        optionRows.push({
-          id: optId,
-          orderProductId: opId,
-          modifierOptionId: opt.modifierOptionId,
-          foodicsId: opt.foodicsId,
-          foodicsSandBoxId: opt.foodicsSandBoxId,
-          quantity: opt.quantity,
-          unitPrice: opt.unitPrice,
-          totalPrice: opt.totalPrice,
-          totalCost: 0,
-          taxExclusiveUnitPrice: opt.taxExclusiveUnitPrice,
-          taxExclusiveTotalPrice: opt.taxExclusiveTotalPrice,
-        });
-        optionTaxRows.push({ orderProductOptionId: optId, ...opt.tax });
-      }
-    }
-  }
-  lap("built");
-
-  const commitOrder = () =>
-    prisma.$transaction([
-      prisma.customerOrder.create({
-        data: {
-          id: customerOrderId,
-          customerId: input.customerId,
-          customerAddressId: input.customerAddressId,
-          subtotalPrice: customerOrderSubtotal,
-          totalPrice: customerOrderTotal,
-          couponId,
-          dueAt: input.dueAt ? new Date(input.dueAt) : undefined,
-          paystackReference: customerOrderId,
-          idempotencyKey: key,
-          requestHash,
-          charges: { create: chargeLines },
-        },
-      }),
-      prisma.order.createMany({ data: orderRows }),
-      prisma.orderProduct.createMany({ data: productRows }),
-      prisma.orderProductTax.createMany({ data: productTaxRows }),
-      prisma.orderProductOption.createMany({ data: optionRows }),
-      prisma.orderProductOptionTax.createMany({ data: optionTaxRows }),
-      prisma.orderSyncJob.createMany({ data: jobRows }),
-    ]);
-
-  const [txRes, payRes] = await Promise.allSettled([
-    commitOrder(),
-    initializePaystackTransaction({
-      customerEmail: input.customerEmail,
-      amountKobo: totalKobo,
-      reference: customerOrderId,
-      split: paystackSplit,
-    }),
-  ]);
-  lap("tx+paystack");
-
-  if (txRes.status === "rejected") {
-    const e = txRes.reason;
-    if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      if (e.code === "P2002" && key) {
-        const existing = await prisma.customerOrder.findUnique({
-          where: { idempotencyKey: key },
-        });
-        if (existing) return replay(existing, requestHash); // lost the race
-      }
-      if (e.code === "P2003")
-        throw Object.assign(new Error("Invalid customer or address"), {
-          status: 400,
-        });
     }
     throw e;
   }
-  if (payRes.status === "rejected") {
-    console.error("[createOrder] paystack init failed", payRes.reason);
-    throw Object.assign(
-      new Error("Payment initialization failed, please retry"),
-      { status: 502 },
-    );
-  }
-
-  const authorizationUrl = payRes.value!.authorization_url;
-  const customerOrder = await prisma.customerOrder.update({
-    where: { id: customerOrderId },
-    data: {
-      paystackAuthUrl: authorizationUrl,
-      paystackReference: payRes.value!.reference,
-    },
+  lap("tx");
+  const paystackTransaction = await initializePaystackTransaction({
+    customerEmail: input.customerEmail,
+    amountKobo: totalKobo, // the exact integer already computed — no re-rounding of a float
+    reference: customerOrder.id,
+    split: paystackSplit,
   });
-  return { ...customerOrder, authorizationUrl };
+  // console.log(paystackTransaction);
+  // Persist the reference so the webhook can find this order later —
+  // a plain update, not part of the original transaction, since the
+  // order's existence doesn't depend on Paystack succeeding.
+  await prisma.customerOrder.update({
+    where: { id: customerOrder.id },
+    data: { paystackReference: paystackTransaction!.reference },
+  });
+
+  return {
+    ...customerOrder,
+    authorizationUrl: paystackTransaction!.authorization_url,
+  };
+
+  // return customerOrder;
+  // console.log(result);
 }
 
 function buildBrandOrderData(
@@ -430,3 +360,34 @@ function buildBrandOrderData(
 
   return { subtotal, totalPrice, productLines };
 }
+
+// const allBranchesWithThatAddress = await prisma.branch.findMany({
+//     where: { address: resolvedBranch?.address },
+//   });
+//   console.log(
+//     "branches at that address (no groupName filter):",
+//     allBranchesWithThatAddress.map((b) => ({
+//       groupName: JSON.stringify(b.groupName),
+//       address: JSON.stringify(b.address),
+//     })),
+//   );
+
+// for (const built of builtOrders) {
+//     console.log("BUILT ORDER:", {
+//       branchId: built.branchId,
+//       subtotal: built.subtotal,
+//       totalPrice: built.totalPrice,
+//       lines: built.productLines.map((l) => ({
+//         productId: l.productId,
+//         quantity: l.quantity,
+//         unitPrice: l.unitPrice,
+//         totalPrice: l.totalPrice,
+//         options: l.options.map((o) => ({
+//           modifierOptionId: o.modifierOptionId,
+//           quantity: o.quantity,
+//           unitPrice: o.unitPrice,
+//           totalPrice: o.totalPrice,
+//         })),
+//       })),
+//     });
+//   }

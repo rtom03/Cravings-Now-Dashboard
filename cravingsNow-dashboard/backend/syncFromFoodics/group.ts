@@ -1,10 +1,18 @@
 import { syncGroupProducts } from "../services/foodics/groups.service";
-import { FdGroup, FoodicsGroupsProducts } from "../types/index.types";
+import { FoodicsGroupsProducts } from "../types/index.types";
 import { prisma } from "../utils/db";
 
-const upsertGroup = async (group: FdGroup) => {
+interface FdGroup {
+  id: string;
+  foodics_id: string;
+  name: string;
+  name_localized: string;
+  image: string | null;
+}
+
+export const upsertGroup = async (group: FdGroup) => {
   return await prisma.group.upsert({
-    where: { foodicsId: group.id },
+    where: { id: group.id },
     update: {
       name: group.name,
       nameLocalized: group.name_localized,
@@ -20,7 +28,7 @@ const upsertGroup = async (group: FdGroup) => {
 };
 export const upsertGroupProducts = async (
   product: FoodicsGroupsProducts,
-  // catId: string,
+  catId?: string,
 ) => {
   return await prisma.groupProducts.upsert({
     where: { foodicsId: product.id },
@@ -45,7 +53,7 @@ export const upsertGroupProducts = async (
       walkingMinutesToBurnCalories: product.walking_minutes_to_burn_calories,
       isHighSalt: product.is_high_salt,
       pivot: product.pivot,
-      // categoryId: catId,
+      categoryId: catId,
     },
     create: {
       foodicsId: product.id,
@@ -69,7 +77,7 @@ export const upsertGroupProducts = async (
       walkingMinutesToBurnCalories: product.walking_minutes_to_burn_calories,
       isHighSalt: product.is_high_salt,
       pivot: product.pivot,
-      // categoryId: catId,
+      categoryId: catId,
     },
   });
 };

@@ -50,52 +50,8 @@ const getBranches = async (req: Request, res: Response) => {
   }
 };
 
-/// synchronization
-const branchSync = async (req: Request, res: Response) => {
-  const branches = await await syncBranches();
-
-  return res.json({ branches });
-};
-
 /// upsert
-const upsertBranch = async (branch: FoodicsBranch) => {
-  return prisma.branch.upsert({
-    where: {
-      foodicsId: branch.id,
-    },
-    update: {
-      name: branch.name,
-      nameLocalized: branch.name_localized,
-      reference: branch.reference,
-      phone: branch.phone,
-      latitude: branch.latitude,
-      longitude: branch.longitude,
-      openingFrom: branch.opening_from,
-      openingTo: branch.opening_to,
-      receivesOnlineOrders: branch.receives_online_orders,
-    },
-    create: {
-      foodicsId: branch.id,
-      name: branch.name,
-      nameLocalized: branch.name_localized,
-      reference: branch.reference,
-      phone: branch.phone,
-      latitude: branch.latitude,
-      longitude: branch.longitude,
-      openingFrom: branch.opening_from,
-      openingTo: branch.opening_to,
-      inventoryEndOfDayTime: branch.inventory_end_of_day_time,
-      receiptHeader: branch.receipt_header,
-      receiptFooter: branch.receipt_footer,
-      address: branch.address,
-      receivesOnlineOrders: branch.receives_online_orders,
-      reservationTimes: branch.reservation_times,
-      reservationDuration: branch.reservation_duration,
-      acceptsReservations: branch.accepts_reservations,
-      settings: branch.settings,
-    },
-  });
-};
+
 // getActiveTaxGroup();
 
-export { getBranch, getBranches, upsertBranch, branchSync };
+export { getBranch, getBranches };

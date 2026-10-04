@@ -1,21 +1,26 @@
-import { CustomerOrder } from "../generated/prisma/client";
-
-interface PaystackCustomer {
+export interface PaystackCustomer {
   email: string;
   firstName: string;
   lastName: string;
-  phone: string;
+  phone?: string;
 }
 
-interface PaystackInitTrasaction {
-  customerOrder: CustomerOrder;
+export interface PaystackSplit {
+  type: "flat" | "percentage";
+  bearer_type: "account" | "subaccount" | "all-proportional" | "all";
+  bearer_subaccount?: string; // required when bearer_type is "subaccount"
+  subaccounts: Array<{ subaccount: string; share: number }>; // flat: kobo, percentage: 0-100
+}
+
+export interface PaystackInitTransaction {
+  amountKobo: number;
   customerEmail: string;
-  split: {
-    type: "flat";
-    currency: string;
-    bearer_type: string;
-    subaccounts: Array<{ subaccount: string; share: number }>;
-  };
+  reference: string;
+  split?: PaystackSplit;
 }
 
-export { PaystackCustomer, PaystackInitTrasaction };
+export interface PaystackInitResponse {
+  authorization_url: string;
+  access_code: string;
+  reference: string;
+}
