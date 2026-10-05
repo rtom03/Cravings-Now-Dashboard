@@ -1,0 +1,76 @@
+{
+  "data": [
+    {
+      "ingredients": [],
+      "id": "a2ce8693-80a1-4b46-be40-1f03fd2b92d6",
+      "name": "CHARMANDER DOUGHNUT",
+      "name_localized": null,
+      "sku": "sk-0003",
+      "is_active": false,
+      "costing_method": 2,
+      "price": 0,
+      "cost": null,
+      "calories": null,
+      "created_at": "2026-09-22 12:10:47",
+      "updated_at": "2026-09-22 12:27:56",
+      "deleted_at": "2026-09-22 12:27:56",
+      "index": 0
+    },
+    {
+      "ingredients": [],
+      "id": "a2ce86c3-dfed-4e1f-b8f2-1e7ef31e3c94",
+      "name": "Choco-Nut Halo Doughnut",
+      "name_localized": null,
+      "sku": "sk-0004",
+      "is_active": true,
+      "costing_method": 2,
+      "price": 0,
+      "cost": null,
+      "calories": null,
+      "created_at": "2026-09-22 12:11:19",
+      "updated_at": "2026-09-22 12:11:19",
+      "deleted_at": null,
+      "index": 0
+    },
+    {
+      "ingredients": [],
+      "id": "a2ce8cde-56c1-4717-a9db-38baec364349",
+      "name": "Chocolate Drizzle Doughnut",
+      "name_localized": null,
+      "sku": "sk-0005",
+      "is_active": true,
+      "costing_method": 2,
+      "price": 0,
+      "cost": null,
+      "calories": null,
+      "created_at": "2026-09-22 12:28:23",
+      "updated_at": "2026-09-22 12:28:23",
+      "deleted_at": null,
+      "index": 0
+    }
+  ],
+  "links": {
+    "first": "https://api-sandbox.foodics.com/v5/modifier_options?page=1",
+    "last": "https://api-sandbox.foodics.com/v5/modifier_options?page=1",
+    "prev": null,
+    "next": null
+  },
+  "meta": {
+    "current_page": 1,
+    "from": 1,
+    "last_page": 1,
+    "links": [
+      { "url": null, "label": "&laquo; Previous", "active": false },
+      {
+        "url": "https://api-sandbox.foodics.com/v5/modifier_options?page=1",
+        "label": "1",
+        "active": true
+      },
+      { "url": null, "label": "Next &raquo;", "active": false }
+    ],
+    "path": "https://api-sandbox.foodics.com/v5/modifier_options",
+    "per_page": 50,
+    "to": 3,
+    "total": 3
+  }
+}

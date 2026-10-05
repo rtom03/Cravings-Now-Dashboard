@@ -1,0 +1,88 @@
+{
+  "data": [
+    {
+      "id": "95ed5af0-2132-42ce-b962-d6ec9ae26b7f",
+      "name": "Consumption Tax",
+      "name_localized": null,
+      "rate": 5,
+      "created_at": "2022-03-28 11:24:14",
+      "updated_at": "2022-07-26 15:15:10",
+      "deleted_at": "2022-07-26 15:15:10",
+      "inactive_in_order_types": null
+    },
+    {
+      "id": "95ed5b00-b7b1-4a01-af76-1d4d2fb3d80c",
+      "name": "VAT",
+      "name_localized": null,
+      "rate": 7.5,
+      "created_at": "2022-03-28 11:24:25",
+      "updated_at": "2022-05-26 07:41:44",
+      "deleted_at": "2022-05-26 07:41:44",
+      "inactive_in_order_types": null
+    },
+    {
+      "id": "960db177-48f6-4870-b794-21d82e51cd17",
+      "name": "VAT",
+      "name_localized": null,
+      "rate": 7.5,
+      "created_at": "2022-04-13 13:12:41",
+      "updated_at": "2022-07-26 15:15:03",
+      "deleted_at": "2022-07-26 15:15:03",
+      "inactive_in_order_types": null
+    },
+    {
+      "id": "974ffffa-0ba2-455a-aa19-5e7cc2cc213d",
+      "name": "(GST)",
+      "name_localized": null,
+      "rate": 5,
+      "created_at": "2022-09-20 18:28:47",
+      "updated_at": "2023-09-25 03:32:13",
+      "deleted_at": null,
+      "inactive_in_order_types": [2, 3, 4]
+    },
+    {
+      "id": "97500177-d77b-41fc-8498-d6a463f47625",
+      "name": "(VAT)",
+      "name_localized": null,
+      "rate": 7.5,
+      "created_at": "2022-09-20 18:32:58",
+      "updated_at": "2023-09-25 03:32:02",
+      "deleted_at": null,
+      "inactive_in_order_types": [4]
+    },
+    {
+      "id": "9ecdbb0d-9a83-4a15-8a5d-a1202cc53622",
+      "name": "IRS",
+      "name_localized": null,
+      "rate": 5,
+      "created_at": "2025-05-01 01:53:57",
+      "updated_at": "2025-08-05 13:14:05",
+      "deleted_at": null,
+      "inactive_in_order_types": [4]
+    }
+  ],
+  "links": {
+    "first": "http:\/\/api.foodics.com\/v5\/taxes?page=1",
+    "last": "http:\/\/api.foodics.com\/v5\/taxes?page=1",
+    "prev": null,
+    "next": null
+  },
+  "meta": {
+    "current_page": 1,
+    "from": 1,
+    "last_page": 1,
+    "links": [
+      { "url": null, "label": "&laquo; Previous", "active": false },
+      {
+        "url": "http:\/\/api.foodics.com\/v5\/taxes?page=1",
+        "label": "1",
+        "active": true
+      },
+      { "url": null, "label": "Next &raquo;", "active": false }
+    ],
+    "path": "http:\/\/api.foodics.com\/v5\/taxes",
+    "per_page": 50,
+    "to": 6,
+    "total": 6
+  }
+}

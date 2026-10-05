@@ -1,0 +1,291 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  --bg: #ffffff;
+  --bg-surface: #f9fafb;
+  --bg-muted: #f3f4f6;
+  --text: #111827;
+  --text-muted: #6b7280;
+  --text-subtle: #9ca3af;
+  --border: #e5e7eb;
+  --accent: #4f46e5;
+  --accent-bg: #eef2ff;
+  --accent-text: #4338ca;
+}
+
+[data-theme="dark"] {
+  --bg: #141414;
+  --bg-surface: #1f1f1f;
+  --bg-muted: #27272a;
+  --text: #f4f4f5;
+  --text-muted: #a1a1aa;
+  --text-subtle: #71717a;
+  --border: #3f3f46;
+  --accent: #818cf8;
+  --accent-bg: #1e1b4b;
+  --accent-text: #a5b4fc;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+@layer components {
+  .sidebar {
+    @apply w-52 flex-shrink-0 flex flex-col h-screen sticky top-0;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+  }
+  .sidebar-logo {
+    @apply px-4 py-4 text-lg font-semibold;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-nav {
+    @apply flex-1 overflow-y-auto py-2;
+  }
+  .section-label {
+    @apply text-[11px] uppercase tracking-wider px-4 pt-4 pb-1;
+    color: var(--text-subtle);
+  }
+  .nav-item {
+    @apply flex items-center gap-2.5 px-4 py-2 text-sm transition-colors;
+    color: var(--text-muted);
+  }
+  .nav-item:hover {
+    background: var(--bg-surface);
+    color: var(--text);
+  }
+  .nav-item.active {
+    @apply font-medium border-r-2;
+    background: var(--accent-bg);
+    color: var(--accent-text);
+    border-color: var(--accent);
+  }
+  .nav-item i {
+    @apply text-base;
+  }
+  .sidebar-footer {
+    @apply p-4 flex items-center gap-2.5;
+    border-top: 1px solid var(--border);
+  }
+  .avatar {
+    @apply w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center flex-shrink-0;
+    background: var(--accent-bg);
+    color: var(--accent-text);
+  }
+  .avatar-name {
+    @apply text-xs font-medium truncate;
+    color: var(--text);
+  }
+  .avatar-email {
+    @apply text-[11px] truncate;
+    color: var(--text-subtle);
+  }
+  .header {
+    @apply h-14 flex items-center gap-3 px-5 sticky top-0 z-10 flex-shrink-0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .search-bar {
+    @apply flex items-center gap-2 rounded-lg px-3 h-8 flex-1 max-w-xs;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+  }
+  .search-bar i {
+    @apply text-sm;
+    color: var(--text-subtle);
+  }
+  .search-bar input {
+    @apply bg-transparent border-none outline-none text-sm w-full;
+    color: var(--text);
+  }
+  .search-bar input::placeholder {
+    color: var(--text-subtle);
+  }
+  .header-right {
+    @apply ml-auto flex items-center gap-2;
+  }
+  .agent-badge {
+    @apply text-[11px] rounded-md px-2 py-1;
+    color: var(--text-subtle);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+  }
+  .agent-badge strong {
+    @apply font-medium;
+    color: var(--accent);
+  }
+  .header-right button {
+    @apply w-8 h-8 flex items-center justify-center rounded-lg border-none bg-transparent cursor-pointer transition-colors;
+    color: var(--text-muted);
+  }
+  .header-right button:hover {
+    background: var(--bg-muted);
+  }
+  .header-right button i {
+    @apply text-lg;
+  }
+  [data-theme="dark"] {
+    .bg-white {
+      background-color: var(--bg) !important;
+    }
+    .bg-gray-50 {
+      background-color: var(--bg-surface) !important;
+    }
+    .bg-gray-100 {
+      background-color: var(--bg-muted) !important;
+    }
+    .text-gray-900 {
+      color: var(--text) !important;
+    }
+    .text-gray-800 {
+      color: var(--text) !important;
+    }
+    .text-gray-700 {
+      color: var(--text-muted) !important;
+    }
+    .text-gray-500 {
+      color: var(--text-muted) !important;
+    }
+    .text-gray-400 {
+      color: var(--text-subtle) !important;
+    }
+    .border-gray-200 {
+      border-color: var(--border) !important;
+    }
+    .border-gray-100 {
+      border-color: var(--border) !important;
+    }
+    .hover\:bg-gray-50:hover {
+      background-color: var(--bg-surface) !important;
+    }
+    .hover\:bg-gray-100:hover {
+      background-color: var(--bg-muted) !important;
+    }
+  }
+}
+
+/* Loader.css */
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+}
+
+.loader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader-core {
+  width: 20%;
+  height: 20%;
+  border-radius: 50%;
+  box-shadow:
+    0 0 20px currentColor,
+    0 0 40px currentColor;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.loader-orbit {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  animation: spin linear infinite;
+}
+
+.loader-orbit-delayed {
+  animation-direction: reverse;
+}
+
+.loader-particle {
+  position: absolute;
+  width: 12%;
+  height: 12%;
+  border-radius: 50%;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  filter: blur(1px);
+  animation: orbit linear infinite;
+}
+
+.loader-particle-delayed {
+  animation-direction: reverse;
+  animation-delay: -0.5s;
+}
+
+.loader-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  letter-spacing: 0.5px;
+  animation: fade 1.5s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbit {
+  0% {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    opacity: 0.6;
+  }
+  100% {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fade {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
