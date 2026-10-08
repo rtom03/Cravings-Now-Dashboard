@@ -62,7 +62,6 @@ const meVerified = async (req: Request, res: Response) => {
       email: true,
     },
   });
-
   if (!customer) {
     return res.status(404).json({ message: "Customer not found" });
   }

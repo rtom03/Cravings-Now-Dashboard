@@ -74,6 +74,7 @@ model Branch {
   foodicsSandBoxId    String?
   nameLocalized       String? @map("name_localized")
   reference           String? @unique @map("reference")
+  addressTag          String?
   name                String
   latitude            String?
   longitude           String?
@@ -95,10 +96,6 @@ model Branch {
   groupName             String?
 
   // --- Relations ---
-
-  taxGroupId String?   @map("tax_group_id")
-  taxGroup   TaxGroup? @relation(fields: [taxGroupId], references: [id])
-
   branchCategories BranchCategory[]
 
   // brandId String
@@ -206,8 +203,6 @@ model GroupProducts {
   groupId                      String?
   reactivateAt                 DateTime?
 
-  taxGroupId            String?                @map("tax_group_id")
-  taxGroup              TaxGroup?              @relation("ProductsTax", fields: [taxGroupId], references: [id])
   group                 Group?                 @relation(fields: [groupId], references: [id])
   categoryId            String?                @map("category_id")
   category              Category?              @relation(fields: [categoryId], references: [id])
@@ -251,8 +246,6 @@ model ModifierOption {
 
   // --- Relations ---
 
-  taxGroupId         String?                  @map("tax_group_id")
-  taxGroup           TaxGroup?                @relation(fields: [taxGroupId], references: [id])
   createdAt          DateTime                 @default(now()) @map("created_at")
   updatedAt          DateTime                 @updatedAt @map("updated_at")
   deletedAt          DateTime?                @map("deleted_at")
@@ -455,51 +448,6 @@ model DeliveryZone {
   @@map("delivery_zones")
 }
 
-model TaxGroup {
-  id               String  @id @default(uuid())
-  foodicsId        String  @unique
-  foodicsSandBoxId String?
-
-  name          String
-  nameLocalized String?         @map("name_localized")
-  reference     String?
-  // --- Relations ---
-  products      GroupProducts[] @relation("ProductsTax")
-  taxes         Tax[]           @relation("TaxGroupTaxes")
-  createdAt     DateTime        @default(now()) @map("created_at")
-  updatedAt     DateTime        @updatedAt @map("updated_at")
-  deletedAt     DateTime?       @map("deleted_at")
-
-  branch                  Branch[]
-  modifierOption          ModifierOption[]
-  orderProductTax         OrderProductTax[]       @relation("OrderProductTaxes")
-  orderProductOptionTaxes OrderProductOptionTax[] @relation("OrderProductOptionTaxes")
-  orderChargeTaxes        OrderChargeTax[]        @relation("OrderChargeTaxes")
-  orderTax                OrderTax[]              @relation("OrderTaxes")
-
-  @@map("tax_groups")
-}
-
-model Tax {
-  id               String  @id @default(uuid())
-  foodicsId        String  @unique
-  foodicsSandBoxId String?
-
-  name          String
-  nameLocalized String? @map("name_localized")
-  rate          Float // the tax rate — required, updatable
-
-  // Add tax-specific fields here (e.g. rate, type) once you share the Tax spec
-  taxGroupId String
-  taxGroups  TaxGroup? @relation("TaxGroupTaxes", fields: [taxGroupId], references: [id])
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  @@map("taxes")
-}
-
 //  {<---------- Order Model ---------->}
 model Order {
   id               String  @id @default(uuid())
@@ -516,19 +464,18 @@ model Order {
   deliveryStatus Int?        @map("delivery_status")
   couponCode     String?
 
-  guests                     Int
-  kitchenNotes               String?          @map("kitchen_notes")
-  customerNotes              String?          @map("customer_notes")
-  businessDate               DateTime         @map("business_date") @db.Date
-  subtotalPrice              Float            @map("subtotal_price")
-  discountAmount             Float            @map("discount_amount")
-  roundingAmount             Float            @map("rounding_amount")
-  totalPrice                 Float            @map("total_price")
-  taxExclusiveDiscountAmount Float            @map("tax_exclusive_discount_amount")
-  delayInSeconds             Int?             @map("delay_in_seconds")
-  discountType               Discounts_Types?
-  meta                       Json? // arbitrary nested integration data (foodics.*, uuid, joined_orders, etc.) — stays JSON, not modeled field-by-field
-  taxReportingTransaction    Json?            @map("tax_reporting_transaction") // no field spec given yet — placeholder JSON pending spec
+  guests                  Int
+  kitchenNotes            String?          @map("kitchen_notes")
+  customerNotes           String?          @map("customer_notes")
+  businessDate            DateTime         @map("business_date") @db.Date
+  subtotalPrice           Float            @map("subtotal_price")
+  discountAmount          Float            @map("discount_amount")
+  roundingAmount          Float            @map("rounding_amount")
+  totalPrice              Float            @map("total_price")
+  delayInSeconds          Int?             @map("delay_in_seconds")
+  discountType            Discounts_Types?
+  meta                    Json? // arbitrary nested integration data (foodics.*, uuid, joined_orders, etc.) — stays JSON, not modeled field-by-field
+  taxReportingTransaction Json?            @map("tax_reporting_transaction") // no field spec given yet — placeholder JSON pending spec
 
   // --- Relations ---
 
@@ -570,7 +517,6 @@ model Order {
 
   payments        OrderPayment[]
   charges         OrderCharge[]
-  taxes           OrderTax[]
   products        OrderProduct[]
   tags            Tag[]          @relation("OrderTags") // no pivot shown -> plain many-to-many
   customerOrderId String         @map("customer_order_id")
@@ -594,38 +540,23 @@ model Order {
 }
 
 // Top-level order taxes — pivot: {amount, rate, tax_exclusive_discount_amount}
-model OrderTax {
-  id                         String   @id @default(uuid())
-  orderId                    String   @map("order_id")
-  order                      Order    @relation(fields: [orderId], references: [id])
-  taxGroupId                 String
-  taxGroup                   TaxGroup @relation("OrderTaxes", fields: [taxGroupId], references: [id])
-  amount                     Float
-  rate                       Float
-  taxExclusiveDiscountAmount Float?   @map("tax_exclusive_discount_amount")
-
-  @@map("order_taxes")
-}
 
 model OrderProduct {
-  id                         String    @id @default(uuid())
-  foodicsId                  String?
-  foodicsSandBoxId           String?
-  discountType               Int?      @map("discount_type")
-  quantity                   Int
-  returnedQuantity           Int?      @map("returned_quantity")
-  unitPrice                  Float     @map("unit_price")
-  discountAmount             Float     @map("discount_amount")
-  totalPrice                 Float     @map("total_price")
-  totalCost                  Float     @map("total_cost")
-  taxExclusiveDiscountAmount Float     @map("tax_exclusive_discount_amount")
-  taxExclusiveUnitPrice      Float     @map("tax_exclusive_unit_price")
-  taxExclusiveTotalPrice     Float     @map("tax_exclusive_total_price")
-  kitchenNotes               String?   @map("kitchen_notes")
-  meta                       Json?
-  addedAt                    DateTime  @map("added_at")
-  closedAt                   DateTime? @map("closed_at")
-  voidTag                    Json?     @map("void_tag") // no field spec given yet — placeholder JSON pending spec
+  id               String    @id @default(uuid())
+  foodicsId        String?
+  foodicsSandBoxId String?
+  discountType     Int?      @map("discount_type")
+  quantity         Int
+  returnedQuantity Int?      @map("returned_quantity")
+  unitPrice        Float     @map("unit_price")
+  discountAmount   Float     @map("discount_amount")
+  totalPrice       Float     @map("total_price")
+  totalCost        Float     @map("total_cost")
+  kitchenNotes     String?   @map("kitchen_notes")
+  meta             Json?
+  addedAt          DateTime  @map("added_at")
+  closedAt         DateTime? @map("closed_at")
+  voidTag          Json?     @map("void_tag") // no field spec given yet — placeholder JSON pending spec
 
   // --- Relations ---
   voidReasonId String? @map("void_reason_id")
@@ -649,40 +580,23 @@ model OrderProduct {
   promotionId String?    @map("promotion_id")
   promotion   Promotion? @relation("OrderProductPromotion", fields: [promotionId], references: [id])
 
-  taxes   OrderProductTax[]
   options OrderProductOption[]
 
   @@map("order_products")
 }
 
-model OrderProductTax {
-  id                         String       @id @default(uuid())
-  orderProductId             String       @map("order_product_id")
-  orderProduct               OrderProduct @relation(fields: [orderProductId], references: [id])
-  taxGroupId                 String
-  taxGroup                   TaxGroup     @relation("OrderProductTaxes", fields: [taxGroupId], references: [id])
-  amount                     Float
-  rate                       Float
-  taxExclusiveDiscountAmount Float?       @map("tax_exclusive_discount_amount")
-
-  @@map("order_product_taxes")
-}
-
 // pivot: {amount, rate, tax_exclusive_discount_amount} — same real-data pattern as OrderTax
 
 model OrderProductOption {
-  id                         String    @id @default(uuid())
-  foodicsId                  String?
-  foodicsSandBoxId           String?
-  quantity                   Int
-  partition                  Int?
-  unitPrice                  Float     @map("unit_price")
-  totalPrice                 Float     @map("total_price")
-  totalCost                  Float     @map("total_cost")
-  taxExclusiveUnitPrice      Float?    @map("tax_exclusive_unit_price")
-  taxExclusiveTotalPrice     Float?    @map("tax_exclusive_total_price")
-  taxExclusiveDiscountAmount Float?    @map("tax_exclusive_discount_amount")
-  addedAt                    DateTime? @map("added_at")
+  id               String    @id @default(uuid())
+  foodicsId        String?
+  foodicsSandBoxId String?
+  quantity         Int
+  partition        Int?
+  unitPrice        Float     @map("unit_price")
+  totalPrice       Float     @map("total_price")
+  totalCost        Float     @map("total_cost")
+  addedAt          DateTime? @map("added_at")
 
   // --- Relations ---
 
@@ -692,22 +606,7 @@ model OrderProductOption {
   modifierOptionId String         @map("modifier_option_id")
   modifierOption   ModifierOption @relation(fields: [modifierOptionId], references: [id])
 
-  taxes OrderProductOptionTax[]
-
   @@map("order_product_options")
-}
-
-model OrderProductOptionTax {
-  id                         String             @id @default(uuid())
-  orderProductOptionId       String             @map("order_product_option_id")
-  orderProductOption         OrderProductOption @relation(fields: [orderProductOptionId], references: [id])
-  taxGroupId                 String
-  taxGroup                   TaxGroup           @relation("OrderProductOptionTaxes", fields: [taxGroupId], references: [id])
-  amount                     Float
-  rate                       Float
-  taxExclusiveDiscountAmount Float?             @map("tax_exclusive_discount_amount")
-
-  @@map("order_product_option_taxes")
 }
 
 model OrderCharge {
@@ -720,22 +619,7 @@ model OrderCharge {
 
   chargeId String @map("charge_id")
 
-  taxes OrderChargeTax[]
-
   @@map("order_charges")
-}
-
-model OrderChargeTax {
-  id                         String      @id @default(uuid())
-  orderChargeId              String      @map("order_charge_id")
-  orderCharge                OrderCharge @relation(fields: [orderChargeId], references: [id])
-  taxGroupId                 String
-  taxGroup                   TaxGroup    @relation("OrderChargeTaxes", fields: [taxGroupId], references: [id])
-  amount                     Float
-  rate                       Float
-  taxExclusiveDiscountAmount Float?      @map("tax_exclusive_discount_amount")
-
-  @@map("order_charge_taxes")
 }
 
 model OrderPayment {
@@ -781,8 +665,11 @@ model CustomerOrder {
   requestHash     String?
   paystackAuthUrl String?
 
-  paymentStatus     PaymentStatus @default(Pending) @map("payment_status")
-  paystackReference String?       @unique @map("paystack_reference")
+  paymentStatus  PaymentStatus @default(Pending) @map("payment_status")
+  paidAt         DateTime?
+  paymentChannel String?
+
+  paystackReference String? @unique @map("paystack_reference")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

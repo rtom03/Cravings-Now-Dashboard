@@ -29,7 +29,6 @@ export function buildFoodicsOrderPayload(order: FullOrder) {
     // discount_amount: order.discountAmount,
     // rounding_amount: order.roundingAmount,
     // total_price: order.totalPrice,
-    // tax_exclusive_discount_amount: order.taxExclusiveDiscountAmount,
     // branch_id: order.branch.foodicsId, // Foodics' branch ID,
     branch_id: order.branch.foodicsSandBoxId, // Foodics' branch ID
 
@@ -58,7 +57,6 @@ export function buildFoodicsOrderPayload(order: FullOrder) {
       unit_price: p.unitPrice,
       // total_price: p.totalPrice,
       // discount_amount: p.discountAmount,
-      // tax_exclusive_discount_amount: p.taxExclusiveDiscountAmount,
       // tax_exclusive_unit_price: p.taxExclusiveUnitPrice,
       // tax_exclusive_total_price: p.taxExclusiveTotalPrice,
       // kitchen_notes: p.kitchenNotes ?? "",

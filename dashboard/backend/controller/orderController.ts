@@ -5,6 +5,7 @@ import { prisma } from "../utils/db";
 import { paystack } from "../services/paystack/paystack";
 import { markPaid } from "./paystackWebhookHandler";
 import { IDParams } from "./branchController";
+import { priceCart } from "../services/pricing";
 
 export async function createOrderHandler(req: Request, res: Response) {
   try {
@@ -50,4 +51,16 @@ export async function paymentStatusHandler(
     select: { paymentStatus: true },
   });
   res.json(fresh);
+}
+
+// POST /api/orders/quote
+export async function quoteHandler(req: Request, res: Response) {
+  try {
+    const { quote } = await priceCart(req.body);
+    // console.log(quote.items.map((m) => m.foodicsSandboxId));
+    res.json(quote);
+  } catch (e: any) {
+    console.log(e);
+    res.status(e.status ?? 400).json({ error: e.message });
+  }
 }

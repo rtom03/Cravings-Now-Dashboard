@@ -6,7 +6,7 @@ import type {
 } from "../../types/paystack";
 
 const PAYSTACK_TEST_SECRET_KEY = process.env.PAYSTACK_TEST_SECRET_KEY;
-const CALL_BACK_URL = process.env.CALL_BACK_URL;
+const CALL_BACK_URL = process.env.PAYSTACK_CALL_BACK_URL;
 
 export const paystack = axios.create({
   baseURL: "https://api.paystack.co",

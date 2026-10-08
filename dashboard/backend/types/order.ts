@@ -11,7 +11,7 @@ export interface CreateOrderInput {
   products: Array<{
     productId: string;
     foodicsId?: string;
-    foodicsSandBoxId: string;
+    foodicsSandBoxId?: string;
     groupName: string | null; // NEW — which brand this line belongs to, drives the split
     quantity: number;
     kitchenNotes?: string;
@@ -19,7 +19,7 @@ export interface CreateOrderInput {
       modifierOptionId: string;
       quantity: number;
       foodicsId?: string;
-      foodicsSandBoxId: string;
+      foodicsSandBoxId?: string;
     }>;
   }>;
 }

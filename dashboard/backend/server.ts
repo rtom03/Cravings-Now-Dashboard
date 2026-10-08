@@ -7,7 +7,7 @@ import { connectDB } from "./utils/db";
 import routes from "./routes";
 import { paystackWebhookHandler } from "./controller/paystackWebhookHandler";
 // import "./jobs/reactivateProduct";
-// import "./jobs/scheduleFoodicsSync";
+import "./jobs/scheduleFoodicsSync";
 dotenv.config();
 
 connectDB();

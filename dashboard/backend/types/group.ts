@@ -32,6 +32,8 @@ type Category = {
 export interface Product {
   id: string;
   sku: string;
+  foodicsId: string;
+  foodicsSandBoxId: string;
   barcode: string | null;
   name: string;
   nameLocalized: string | null;

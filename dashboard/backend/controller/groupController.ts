@@ -20,6 +20,8 @@ const mapProduct = (product: any): Product => {
   return {
     id: product.id,
     sku: product.sku,
+    foodicsId: product.foodicsId,
+    foodicsSandBoxId: product.foodicsSandBoxId,
     barcode: product.barcode,
     name: product.name,
     image: product.image,
@@ -96,7 +98,10 @@ const getProductsByGroupName = async (
 ) => {
   const { id } = req.params;
   try {
-    const group = await prisma.group.findUnique({ where: { id: id } });
+    const group = await prisma.group.findUnique({
+      where: { id: id },
+      select: { name: true },
+    });
 
     if (!group) {
       return res.status(404).json({

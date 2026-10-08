@@ -37,30 +37,50 @@ export async function markPaid(
 ) {
   const order = await prisma.customerOrder.findUnique({
     where: { id: reference },
-  }); // reference === id
+    select: { id: true, totalPrice: true },
+  });
   if (!order) {
     console.error("[markPaid] unknown reference", reference);
     return;
   }
 
-  // never trust the event alone: amount and currency must match what we charged
   if (currency !== "NGN" || amountKobo !== Math.round(order.totalPrice * 100)) {
     console.error("[markPaid] amount mismatch", {
       reference,
       amountKobo,
       expected: order.totalPrice,
     });
-    return; // alert on this: possible tampering or a bug
+    return;
   }
 
-  // idempotent: Paystack retries and may send duplicates
-  const { count } = await prisma.customerOrder.updateMany({
-    where: { id: order.id, paymentStatus: { not: "Paid" } },
-    data: {
-      paymentStatus: "Paid",
-      paidAt: new Date(),
-      paymentChannel: channel,
+  return prisma.$transaction(
+    async (tx) => {
+      // guard: only the first PENDING -> PAID transition proceeds
+      const { count } = await tx.customerOrder.updateMany({
+        where: { id: order.id, paymentStatus: { not: "Paid" } },
+        data: {
+          paymentStatus: "Paid",
+          paidAt: new Date(),
+          paymentChannel: channel,
+        },
+      });
+      if (count === 0) return { firstTime: false }; // duplicate webhook or verify call
+
+      await tx.order.updateMany({
+        where: { customerOrderId: order.id, status: "Pending" }, // guard: don't clobber later states
+        data: { status: "Active" },
+      });
+
+      const orders = await tx.order.findMany({
+        where: { customerOrderId: order.id },
+        select: { id: true },
+      });
+      await tx.orderSyncJob.createMany({
+        data: orders.map((o) => ({ orderId: o.id })),
+        skipDuplicates: true, // needs @unique on OrderSyncJob.orderId
+      });
+      return { firstTime: true };
     },
-  });
-  return { firstTime: count === 1 };
+    { timeout: 15000 },
+  );
 }
